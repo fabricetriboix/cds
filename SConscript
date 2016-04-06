@@ -1,0 +1,65 @@
+Import('variant')
+
+import os
+
+incs = []
+objs = []
+rttestmainobj = ""
+testsrcs = []
+
+subdirs = [os.path.join("plf", variant['target']),
+           "cdslist"]
+
+for subdir in subdirs:
+    artefacts = SConscript(os.path.join(subdir, "SConscript"),
+            exports={'variant': variant})
+    variant['env'].Append(CPPPATH = [os.path.join("#" + subdir, "include")])
+
+    for key, value in artefacts.items():
+        if key == 'incs':
+            incs.extend([os.path.join(subdir, inc) for inc in value])
+
+        elif key == 'objs':
+            objs.extend(value)
+
+        elif key == 'rttestmainobj':
+            rttestmainobj = value
+
+        elif key == 'testsrcs':
+            for src in value:
+                testsrcs.append(os.path.join(subdir, src))
+
+lib = variant['env'].StaticLibrary('cds', objs)
+
+# NB: We have to do a bit of gymnastics to get scons to install files
+# or directories that are not the results of some build process. This
+# is because scons will use the relative paths from the variant
+# directory, not the source directory. The way to solve that is to use
+# absolute paths for any file/directory in the source directories.
+# NB2: Don't use `os.getcwd()` here, it will give you the variant
+# directory.
+for inc in incs:
+    variant['env'].Install(variant['install_inc'], "#" + inc)
+
+# Build doxygen documentation
+# XXX
+if variant['env']['HAS_DOXYGEN'] == "TODOyes":
+    cmd = os.path.join(".", "run_doxygen.py")
+    cmd += " "
+    if variant['env']['HAS_DOT'] == "yes":
+        cmd += "--hasdot"
+    doxyDir = os.path.join(variant['build_root'], "doxy")
+    cmd += doxyDir + " "
+    cmd += " ".join(incs)
+    variant['env'].Command("doc", incs, cmd)
+    variant['env'].Install(variant['install_doc'], doxyDir)
+
+# Install final libraries
+variant['env'].Install(variant['install_lib'], lib)
+
+# Build test program
+if len(testsrcs) > 0:
+    testobjs = [variant['env'].StaticObject(src) for src in testsrcs]
+    testobjs.append(rttestmainobj)
+    variant['env'].Program("cds_unit_tests", testobjs,
+            LIBS=['cds', 'rttest', 'rtsys'])
