@@ -13,11 +13,11 @@ subdirs = [os.path.join("plf", variant['target']),
 for subdir in subdirs:
     artefacts = SConscript(os.path.join(subdir, "SConscript"),
             exports={'variant': variant})
-    variant['env'].Append(CPPPATH = [os.path.join("#" + subdir, "include")])
+    variant['env'].Append(CPPPATH = [os.path.join("#src", subdir, "include")])
 
     for key, value in artefacts.items():
         if key == 'incs':
-            incs.extend([os.path.join(subdir, inc) for inc in value])
+            incs.extend([os.path.join("src", subdir, inc) for inc in value])
 
         elif key == 'objs':
             objs.extend(value)

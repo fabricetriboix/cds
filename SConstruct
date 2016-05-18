@@ -38,8 +38,7 @@ if not tgtplf:
     tgtplf = hostplf
     print("--target not set, using same as host: " + tgtplf)
 
-# XXX tmp = os.path.abspath(os.path.join("plf", tgtplf))
-tmp = os.path.join("plf", tgtplf)
+tmp = os.path.join("src", "plf", tgtplf)
 if not os.access(tmp, os.R_OK):
     print("ERROR: target platform not found: " + tmp)
 
@@ -136,7 +135,8 @@ for v in variantNames:
 
 # Include SConscript for each variant
 for v in variantNames:
-    SConscript("SConscript", variant_dir=variants[v]['build_root'],
+    SConscript(os.path.join("src", "SConscript"),
+            variant_dir=variants[v]['build_root'],
             duplicate=0, exports={'variant': variants[v]})
 
 # Manage targets
