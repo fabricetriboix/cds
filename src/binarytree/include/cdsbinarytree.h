@@ -198,22 +198,31 @@ void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node);
 CdsBinaryTreeNode* CdsBinaryTreeRoot(const CdsBinaryTree* tree);
 
 
-/** Get the left child of a parent node
+/** Get the left child of a node
  *
- * \param node [in] Parent node to query; must not be NULL
+ * \param node [in] Node to query; must not be NULL
  *
  * \return Child node on left of `node`, or NULL if `node` has no left child
  */
 CdsBinaryTreeNode* CdsBinaryTreeLeft(const CdsBinaryTreeNode* node);
 
 
-/** Get the right child of a parent node
+/** Get the right child of a node
  *
- * \param node [in] Parent node to query; must not be NULL
+ * \param node [in] Node to query; must not be NULL
  *
  * \return Child node on right of `node`, or NULL if `node` has no right child
  */
 CdsBinaryTreeNode* CdsBinaryTreeRight(const CdsBinaryTreeNode* node);
+
+
+/** Get the parent of a node
+ *
+ * \param node [in] Node to query; must not be NULL
+ *
+ * \return Parent node `node`, or NULL if `node` has no parent (i.e. it is the root node)
+ */
+CdsBinaryTreeNode* CdsBinaryTreeParent(const CdsBinaryTreeNode* node);
 
 
 /** Check if a node is a leaf
@@ -263,6 +272,36 @@ CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
  * \param cookie [in] Cookie for the previous action function
  */
 void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
+        CdsBinaryTreeNodeAction action, void* cookie);
+
+
+/** Traverse a sub-tree in in-order fashion
+ *
+ * This function will recursively traverse the sub-tree starting at `top`
+ * following the in-order method of traversal: left, root, right.
+ *
+ * The `action` function will be called on each traversed node.
+ *
+ * \param node   [in] Top node of sub-tree to traverse; must not be NULL
+ * \param action [in] Action to apply to nodes; must not be NULL
+ * \param cookie [in] Cookie for the previous action function
+ */
+void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
+        CdsBinaryTreeNodeAction action, void* cookie);
+
+
+/** Traverse a sub-tree in post-order fashion
+ *
+ * This function will recursively traverse the sub-tree starting at `top`
+ * following the post-order method of traversal: left, root, right.
+ *
+ * The `action` function will be called on each traversed node.
+ *
+ * \param node   [in] Top node of sub-tree to traverse; must not be NULL
+ * \param action [in] Action to apply to nodes; must not be NULL
+ * \param cookie [in] Cookie for the previous action function
+ */
+void CdsBinaryTreeTraversePostOrder(CdsBinaryTreeNode* node,
         CdsBinaryTreeNodeAction action, void* cookie);
 
 

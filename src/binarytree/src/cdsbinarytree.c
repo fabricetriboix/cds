@@ -270,6 +270,13 @@ CdsBinaryTreeNode* CdsBinaryTreeRight(const CdsBinaryTreeNode* node)
 }
 
 
+CdsBinaryTreeNode* CdsBinaryTreeParent(const CdsBinaryTreeNodd* node)
+{
+	CDSASSERT(node !=NULL);
+	return node->parent;
+}
+
+
 CdsBinaryTreeNode* CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
@@ -304,11 +311,6 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
     // NB: No recursion necessary!
     node->flags = 0;
     for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
-        if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-            action(curr, cookie);
-            curr->flags |= CDS_BT_FLAG_VISITED;
-        }
-
         if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
             curr->flags |= CDS_BT_FLAG_LEFT;
             curr = curr->left;
@@ -320,11 +322,73 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
             curr->flags = 0;
 
         } else {
+			action(curr, cookie);
             curr = curr->parent;
         }
     }
 }
-// TODO: from here
+
+
+void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
+        CdsBinaryTreeNodeAction action, void* cookie)
+{
+    CDSASSERT(node != NULL);
+    CDSASSERT(action != NULL);
+
+    // NB: No recursion necessary!
+    node->flags = 0;
+    for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
+        if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
+            curr->flags |= CDS_BT_FLAG_LEFT;
+            curr = curr->left;
+            curr->flags = 0;
+
+        } else if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)){
+			if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
+				action(curr, cookie);
+				curr->flags |= CDS_BT_FLAG_VISITED;
+			}
+            curr->flags |= CDS_BT_FLAG_RIGHT;
+            curr = curr->right;
+            curr->flags = 0;
+
+        } else {
+			if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
+				action(curr, cookie);
+				curr->flags |= CDS_BT_FLAG_VISITED;
+			}
+
+            curr = curr->parent;
+        }
+    }
+}
+
+
+void CdsBinaryTreeTraversePostOrder(CdsBinaryTreeNode* node,
+        CdsBinaryTreeNodeAction action, void* cookie)
+{
+    CDSASSERT(node != NULL);
+    CDSASSERT(action != NULL);
+
+    // NB: No recursion necessary!
+    node->flags = 0;
+    for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
+        if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)) {
+            curr->flags |= CDS_BT_FLAG_RIGHT;
+            curr = curr->right;
+            curr->flags = 0;
+
+        } else if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
+            curr->flags |= CDS_BT_FLAG_LEFT;
+            curr = curr->left;
+            curr->flags = 0;
+
+        } else {
+            action(curr, cookie);
+            curr = curr->parent;
+        }
+    }
+}
 
 
 
