@@ -242,10 +242,47 @@ void CdsBinaryTreeRemoveLeft(CdsBinaryTreeNode* node)
 void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
+    CDSASSERT(node->tree != NULL);
 
-    // TODO: too slow, needs inlining
-    CdsBinaryTreeTraversePreOrder(node,
-            cdsBinaryTreeActionRemoveNodeIfLeaf, NULL);
+    CdsBinaryTree* tree = node->tree;
+    CdsBinaryTreeNode* parent = node->parent;
+
+    // NB: No recursion necessary!
+    node->flags = 0;
+    for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
+        if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
+            curr->flags |= CDS_BT_FLAG_LEFT;
+            curr = curr->left;
+            curr->flags = 0;
+
+        } else if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)){
+            curr->flags |= CDS_BT_FLAG_RIGHT;
+            curr = curr->right;
+            curr->flags = 0;
+
+        } else {
+            if (tree->unref != NULL) {
+                tree->unref(node);
+            }
+            tree->size--;
+            curr = curr->parent;
+        }
+    }
+
+    if (parent == NULL) {
+        // We removed the root node
+        CDSASSERT(tree->size == 0);
+        CDSASSERT(tree->root == node);
+        tree->root = NULL;
+
+    } else {
+        if (parent->left == node) {
+            parent->left = NULL;
+        } else {
+            CDSASSERT(parent->right == NULL);
+            parent->right = NULL;
+        }
+    }
 }
 
 
