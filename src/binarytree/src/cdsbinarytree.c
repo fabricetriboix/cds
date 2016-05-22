@@ -322,7 +322,7 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
             curr->flags = 0;
 
         } else {
-			action(curr, cookie);
+            action(curr, cookie);
             curr = curr->parent;
         }
     }
@@ -344,19 +344,19 @@ void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
             curr->flags = 0;
 
         } else if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)){
-			if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-				action(curr, cookie);
-				curr->flags |= CDS_BT_FLAG_VISITED;
-			}
+            if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
+                action(curr, cookie);
+                curr->flags |= CDS_BT_FLAG_VISITED;
+            }
             curr->flags |= CDS_BT_FLAG_RIGHT;
             curr = curr->right;
             curr->flags = 0;
 
         } else {
-			if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-				action(curr, cookie);
-				curr->flags |= CDS_BT_FLAG_VISITED;
-			}
+            if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
+                action(curr, cookie);
+                curr->flags |= CDS_BT_FLAG_VISITED;
+            }
 
             curr = curr->parent;
         }
