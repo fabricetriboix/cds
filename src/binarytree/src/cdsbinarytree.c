@@ -33,6 +33,7 @@
 struct CdsBinaryTree
 {
     char*                  name;
+    int64_t                capacity;
     int64_t                size;
     CdsBinaryTreeNode*     root;
     CdsBinaryTreeNodeRef   ref;
@@ -46,13 +47,16 @@ struct CdsBinaryTree
  +---------------------------------*/
 
 
-CdsBinaryTree* CdsBinaryTreeCreate(const char* name,
+CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
         CdsBinaryTreeNodeRef ref, CdsBinaryTreeNodeUnref unref)
 {
     CdsBinaryTree* tree = CdsMallocZ(sizeof(tree));
 
     if (name != NULL) {
         tree->name = strdup(name);
+    }
+    if (capacity > 0) {
+        tree->capacity = capacity;
     }
     tree->ref = ref;
     tree->unref = unref;
@@ -80,6 +84,13 @@ const char* CdsBinaryTreeName(const CdsBinaryTree* tree)
 }
 
 
+int64_t CdsBinaryTreeCapacity(const CdsBinaryTree* tree)
+{
+    CDSASSERT(tree != NULL);
+    return tree->capacity;
+}
+
+
 int64_t CdsBinaryTreeSize(const CdsBinaryTree* tree)
 {
     CDSASSERT(tree != NULL);
@@ -90,7 +101,14 @@ int64_t CdsBinaryTreeSize(const CdsBinaryTree* tree)
 bool CdsBinaryTreeIsEmpty(const CdsBinaryTree* tree)
 {
     CDSASSERT(tree != NULL);
-    return (tree->root != NULL);
+    return (tree->size <= 0);
+}
+
+
+bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree)
+{
+    CDSASSERT(tree != NULL);
+    return (tree->size >= tree->capacity);
 }
 
 
@@ -120,20 +138,19 @@ bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
     CDSASSERT(parent->tree != NULL);
     CDSASSERT(child != NULL);
 
+    CdsBinaryTree* tree = child->tree;
     bool ret = false;
-    if (parent->left == NULL) {
+    if ((parent->left == NULL) && !CdsBinaryTreeIsFull(tree)) {
         child->tree = parent->tree;
         child->parent = parent;
         child->left = NULL;
         child->right = NULL;
         parent->left = child;
 
-        CdsBinaryTree* tree = child->tree;
         if (tree->ref != NULL) {
             tree->ref(child);
         }
         tree->size++;
-
         ret = true;
     }
     return ret;
@@ -147,20 +164,19 @@ bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
     CDSASSERT(parent->tree != NULL);
     CDSASSERT(child != NULL);
 
+    CdsBinaryTree* tree = child->tree;
     bool ret = false;
-    if (parent->right == NULL) {
+    if ((parent->right == NULL) && !CdsBinaryTreeIsFull(tree)) {
         child->tree = parent->tree;
         child->parent = parent;
         child->left = NULL;
         child->right = NULL;
         parent->right = child;
 
-        CdsBinaryTree* tree = child->tree;
         if (tree->ref != NULL) {
             tree->ref(child);
         }
         tree->size++;
-
         ret = true;
     }
     return ret;
@@ -204,6 +220,7 @@ void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node)
         tree->root = NULL;
 
     } else {
+        CDSASSERT(tree->size > 0);
         if (parent->left == node) {
             parent->left = NULL;
         } else {
@@ -256,13 +273,24 @@ CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
     CDSASSERT(left != NULL);
     CDSASSERT(right != NULL);
 
-    CdsBinaryTree* tree = CdsBinaryTreeCreate(name, left->ref, left->unref);
+    int64_t capacity = 0;
+    if ((left->capacity > 0) && (right->capacity > 0)) {
+        CDSASSERT(left->size <= left->capacity);
+        CDSASSERT(right->size <= right->capacity);
+        capacity = left->capacity + right->capacity;
+    }
+
+    CdsBinaryTree* tree = CdsBinaryTreeCreate(name, capacity,
+            left->ref, left->unref);
     CdsBinaryTreeSetRoot(tree, root);
 
     tree->root->left = left->root;
     tree->root->right = right->root;
     tree->size += left->size + right->size;
 
+    free(left->name);
+    free(left);
+    free(right->name);
     return tree;
 }
 

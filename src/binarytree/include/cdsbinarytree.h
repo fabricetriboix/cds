@@ -97,15 +97,17 @@ typedef void (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
 
 /** Create a binary tree
  *
- * \param name  [in] Name for this binary tree; may be NULL
- * \param ref   [in] Function to add a reference to a node; may be NULL if you
- *                   don't need it
- * \param unref [in] Function to remove a reference to a node; may be NULL if
- *                   you don't need it
+ * \param name     [in] Name for this binary tree; may be NULL
+ * \param capacity [in] Maximum number of nodes that can be stored in this
+ *                      binary tree; 0 = no limit
+ * \param ref      [in] Function to add a reference to a node; may be NULL if
+ *                      you don't need it
+ * \param unref    [in] Function to remove a reference to a node; may be NULL if
+ *                      you don't need it
  *
  * \return The newly-allocated binary tree, never NULL
  */
-CdsBinaryTree* CdsBinaryTreeCreate(const char* name,
+CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
         CdsBinaryTreeNodeRef ref, CdsBinaryTreeNodeUnref unref);
 
 
@@ -125,9 +127,20 @@ void CdsBinaryTreeDestroy(CdsBinaryTree* tree);
 const char* CdsBinaryTreeName(const CdsBinaryTree* tree);
 
 
-/** Get the number of items currently in the binary tree
+/** Get the maxmim number of nodes this binary tree can hold
  *
  * \param tree [in] Binary tree to query; must not be NULL
+ *
+ * \return The `tree` capacity, or 0 if no limit
+ */
+int64_t CdsBinaryTreeCapacity(const CdsBinaryTree* tree);
+
+
+/** Get the number of nodes currently in the binary tree
+ *
+ * \param tree [in] Binary tree to query; must not be NULL
+ *
+ * \return The number of nodes currently in the `tree`
  */
 int64_t CdsBinaryTreeSize(const CdsBinaryTree* tree);
 
@@ -139,6 +152,18 @@ int64_t CdsBinaryTreeSize(const CdsBinaryTree* tree);
  * \return `true` if the binary tree is empty, `false` otherwise
  */
 bool CdsBinaryTreeIsEmpty(const CdsBinaryTree* tree);
+
+
+/** Test if the binary tree is full
+ *
+ * If the `tree` capacity has been set to 0 at creation, this function always
+ * returns `false`.
+ *
+ * \param tree [in] Binary tree to query; must not be NULL
+ *
+ * \return `true` if the binary tree is full, `false` otherwise
+ */
+bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree);
 
 
 /** Set the root of a binary tree
@@ -161,7 +186,8 @@ bool CdsBinaryTreeSetRoot(CdsBinaryTree* tree, CdsBinaryTreeNode* root);
  * \param parent [in,out] Parent node; must not be NULL
  * \param child  [in,out] Child node to insert under `parent`; must not be NULL
  *
- * \return `true` if OK, `false` if the `parent` already has a left child
+ * \return `true` if OK, `false` if the `parent` already has a left child or if
+ *         the tree is full
  */
 bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
         CdsBinaryTreeNode* child);
@@ -175,7 +201,8 @@ bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
  * \param parent [in,out] Parent node; must not be NULL
  * \param child  [in,out] Child node to insert under `parent`; must not be NULL
  *
- * \return `true` if OK, `false` if the `parent` already has a right child
+ * \return `true` if OK, `false` if the `parent` already has a right child or if
+ *         the tree is full
  */
 bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
         CdsBinaryTreeNode* child);
@@ -244,6 +271,10 @@ bool CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node);
  *
  * The node `ref` and `unref` functions of the `left` tree will be reused for
  * the merged tree.
+ *
+ * The capacity of the new binary tree will be the sum of `left` and `right`
+ * capacities. If either `left` or `right` has unlimited capacity, the merged
+ * tree will also have unlimited capacity.
  *
  * \param name  [in]     A name for the merged tree; may be NULL
  * \param root  [in,out] Node to use as the root of the new binary tree; must
