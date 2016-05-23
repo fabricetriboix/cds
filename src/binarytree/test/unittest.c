@@ -14,360 +14,372 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "cdslist.h"
+#include "cdsbinarytree.h"
 #include "rttest.h"
-
 #include <string.h>
 
 
 typedef struct {
-    CdsListItem CdsListItem;
-    int         ref;
-    int         x;
-} TestItem;
+    CdsBinaryTreeNode node;
+    int ref;
+    int level;
+    int rank;
+} TestNode;
 
-static int gNumberOfItemsInExistance = 0;
+static int gNumberOfNodesInExistence = 0;
 
-static void testItemRef(CdsListItem* cdsListItem, int n)
+static void testNodeUnref(CdsBinaryTreeNode* tnode)
 {
-    TestItem* item = (TestItem*)cdsListItem;
-    item->ref += n;
-    if (item->ref <= 0) {
-        free(item);
-        gNumberOfItemsInExistance--;
+    TestNode* node = (TestNode*)tnode;
+    node->ref--;
+    if (node->ref <= 0) {
+        free(node);
+        gNumberOfNodesInExistence--;
     }
 }
 
-static TestItem* testItemAlloc(void)
+static TestNode* testNodeAlloc(int level, int rank)
 {
-    TestItem* item = malloc(sizeof(*item));
-    memset(item, 0, sizeof(*item));
-    item->ref = 1;
-    gNumberOfItemsInExistance++;
-    return item;
+    TestNode* node = malloc(sizeof(*node));
+    memset(node, 0, sizeof(*node));
+    node->ref = 1;
+    node->level = level;
+    node->rank = rank;
+    gNumberOfNodesInExistence++;
+    return node;
 }
 
-CdsList* gList = NULL;
+CdsBinaryTree* gTree = NULL;
 
 
-RTT_GROUP_START(TestCdsListSmall, 0x00030001u, NULL, NULL)
+/*
 
-RTT_TEST_START(cds_should_create_small_list)
+The test binary tree looks like this, with the (level, rank) for each node:
+
+                              (0,0)
+                                |
+                     +----------+----------+
+                     |                     |
+                   (1,0)                 (1,1)
+                     |                     |
+              +------+----+         +------+------+
+              |           |         |             |
+            (2,0)       (2,1)     (2,2)          NULL
+                                    |
+                              +-----+----+
+                              |          |
+                             NULL      (3,5)
+ */
+
+typedef struct {
+    int nextLevel;
+    int nextRank;
+    bool ok;
+} TraverseData;
+
+#define MAGIC_LEVEL_DONE 0xcafedeca
+#define MAGIC_RANK_DONE  0xdeadbeef
+
+static void testNodeActionPreOrder(CdsBinaryTreeNode* tnode, void* cookie)
 {
-    gList = CdsListCreate("SmallList", testItemRef, 20);
-    RTT_ASSERT(gList != NULL);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_get_small_list_name)
-{
-    const char* name = CdsListName(gList);
-    RTT_EXPECT(strcmp(name, "SmallList") == 0);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_size_should_be_0_after_creation)
-{
-    RTT_ASSERT(CdsListSize(gList) == 0);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_capacity_should_be_20_after_creation)
-{
-    RTT_ASSERT(CdsListCapacity(gList) == 20);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_be_empty_after_creation)
-{
-    RTT_ASSERT(CdsListIsEmpty(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_not_be_full_after_creation)
-{
-    RTT_ASSERT(!CdsListIsFull(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_push_5_items_at_front_of_small_list)
-{
-    for (int i = 0; i < 5; i++) {
-        TestItem* item = testItemAlloc();
-        item->x = (4 - i) * 10;
-        RTT_ASSERT(CdsListPushFront(gList, (CdsListItem*)item));
+    TestNode* node = (TestNode*)tnode;
+    TraverseData* d = (TraverseData*)cookie;
+    if ((node->level != d->nextLevel) || (node->rank != d->nextRank)) {
+        d->ok = false;
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 5);
-}
-RTT_TEST_END
 
-RTT_TEST_START(cds_small_list_size_should_be_5_when_partially_filled)
-{
-    RTT_ASSERT(CdsListSize(gList) == 5);
-}
-RTT_TEST_END
+    if ((node->level == 0) && (node->rank == 0)) {
+        d->nextLevel = 1;
+        d->nextRank = 0;
 
-RTT_TEST_START(cds_small_list_capacity_should_remain_20_when_partially_filled)
-{
-    RTT_ASSERT(CdsListCapacity(gList) == 20);
-}
-RTT_TEST_END
+    } else if ((node->level == 1) && (node->rank == 0)) {
+        d->nextLevel = 2;
+        d->nextRank = 0;
 
-RTT_TEST_START(cds_small_list_should_not_be_empty_when_partially_filled)
-{
-    RTT_ASSERT(!CdsListIsEmpty(gList));
-}
-RTT_TEST_END
+    } else if ((node->level == 2) && (node->rank == 0)) {
+        d->nextLevel = 2;
+        d->nextRank = 1;
 
+    } else if ((node->level == 2) && (node->rank == 1)) {
+        d->nextLevel = 1;
+        d->nextRank = 1;
 
-RTT_TEST_START(cds_small_list_should_not_be_full_when_partially_filled)
-{
-    RTT_ASSERT(!CdsListIsFull(gList));
-}
-RTT_TEST_END
+    } else if ((node->level == 1) && (node->rank == 1)) {
+        d->nextLevel = 2;
+        d->nextRank = 2;
 
-RTT_TEST_START(cds_should_push_15_items_at_back_of_small_list)
-{
-    for (int i = 0; i < 15; i++) {
-        TestItem* item = testItemAlloc();
-        item->x = (i + 5) * 10;
-        RTT_ASSERT(CdsListPushBack(gList, (CdsListItem*)item));
-    }
-    RTT_EXPECT(gNumberOfItemsInExistance == 20);
-}
-RTT_TEST_END
+    } else if ((node->level == 2) && (node->rank == 2)) {
+        d->nextLevel = 3;
+        d->nextRank = 5;
 
-RTT_TEST_START(cds_small_list_size_should_be_20_when_full)
-{
-    RTT_ASSERT(CdsListSize(gList) == 20);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_capacity_should_remain_20_when_full)
-{
-    RTT_ASSERT(CdsListCapacity(gList) == 20);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_not_be_empty_when_full)
-{
-    RTT_ASSERT(!CdsListIsEmpty(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_be_full_when_full)
-{
-    RTT_ASSERT(CdsListIsFull(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_fail_to_push_at_the_front_of_small_list_when_full)
-{
-    TestItem* item = testItemAlloc();
-    RTT_ASSERT(!CdsListPushFront(gList, (CdsListItem*)item));
-    testItemRef((CdsListItem*)item, -1);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_fail_to_push_at_the_back_of_small_list_when_full)
-{
-    TestItem* item = testItemAlloc();
-    RTT_ASSERT(!CdsListPushBack(gList, (CdsListItem*)item));
-    testItemRef((CdsListItem*)item, -1);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_walk_through_small_list)
-{
-    int i = 0;
-    CDSLIST_FOREACH(gList, TestItem, item) {
-        RTT_EXPECT(item->x == i);
-        i += 10;
-    }
-    RTT_EXPECT(i == 200);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_walk_backwards_through_small_list)
-{
-    int i = 190;
-    CDSLIST_FOREACH_REVERSE(gList, TestItem, item) {
-        RTT_EXPECT(item->x == i);
-        i -= 10;
-    }
-    RTT_EXPECT(i == -10);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_pop_5_items_from_front_of_small_list)
-{
-    for (int i = 0; i < 5; i++) {
-        TestItem* item = (TestItem*)CdsListPopFront(gList);
-        RTT_ASSERT(item != NULL);
-        RTT_EXPECT(item->x == (i * 10));
-        testItemRef((CdsListItem*)item, -1);
-    }
-    RTT_EXPECT(gNumberOfItemsInExistance == 15);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_pop_5_items_from_back_of_small_list)
-{
-    for (int i = 0; i < 5; i++) {
-        TestItem* item = (TestItem*)CdsListPopBack(gList);
-        RTT_ASSERT(item != NULL);
-        RTT_EXPECT(item->x == (19 - i) * 10);
-        testItemRef((CdsListItem*)item, -1);
-    }
-    RTT_EXPECT(gNumberOfItemsInExistance == 10);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_insert_item_before_front_of_small_list)
-{
-    TestItem* front = (TestItem*)CdsListFront(gList);
-    RTT_ASSERT(front != NULL);
-    RTT_EXPECT(front->x == 50);
-    TestItem* item = testItemAlloc();
-    item->x = 40;
-    RTT_ASSERT(CdsListInsertBefore((CdsListItem*)front, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 11);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_insert_item_after_front_of_small_list)
-{
-    TestItem* front = (TestItem*)CdsListFront(gList);
-    RTT_ASSERT(front != NULL);
-    RTT_EXPECT(front->x == 40);
-    TestItem* item = testItemAlloc();
-    item->x = 45;
-    RTT_ASSERT(CdsListInsertAfter((CdsListItem*)front, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 12);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_insert_item_before_back_of_small_list)
-{
-    TestItem* back = (TestItem*)CdsListBack(gList);
-    RTT_ASSERT(back != NULL);
-    RTT_EXPECT(back->x == 140);
-    TestItem* item = testItemAlloc();
-    item->x = 135;
-    RTT_ASSERT(CdsListInsertBefore((CdsListItem*)back, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 13);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_insert_item_after_back_of_small_list)
-{
-    TestItem* back = (TestItem*)CdsListBack(gList);
-    RTT_ASSERT(back != NULL);
-    RTT_EXPECT(back->x == 140);
-    TestItem* item = testItemAlloc();
-    item->x = 150;
-    RTT_ASSERT(CdsListInsertAfter((CdsListItem*)back, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 14);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_size_should_be_14_after_direct_inserts)
-{
-    RTT_ASSERT(CdsListSize(gList) == 14);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_capacity_should_remain_20_after_direct_inserts)
-{
-    RTT_ASSERT(CdsListCapacity(gList) == 20);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_not_be_empty_after_direct_inserts)
-{
-    RTT_ASSERT(!CdsListIsEmpty(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_not_be_full_after_direct_inserts)
-{
-    RTT_ASSERT(!CdsListIsFull(gList));
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_remove_items)
-{
-    TestItem* item = (TestItem*)CdsListFront(gList);
-    while (item != NULL) {
-        TestItem* next = (TestItem*)CdsListNext((const CdsListItem*)item);
-        if ((item->x % 10) != 0) {
-            CdsListRemove((CdsListItem*)item);
-            testItemRef((CdsListItem*)item, -1);
-        }
-        item = next;
-    }
-    RTT_EXPECT(gNumberOfItemsInExistance == 12);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_size_should_be_12_after_removing_items)
-{
-    RTT_ASSERT(CdsListSize(gList) == 12);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_small_list_should_be_as_expected_after_removing_items)
-{
-    int i = 40;
-    CDSLIST_FOREACH(gList, TestItem, item) {
-        RTT_EXPECT(item->x == i);
-        i += 10;
+    } else if ((node->level == 3) && (node->rank == 5)) {
+        d->nextLevel = MAGIC_LEVEL_DONE;
+        d->nextRank = MAGIC_RANK_DONE;
     }
 }
-RTT_TEST_END
 
-RTT_TEST_START(cds_should_destroy_small_list)
+
+RTT_GROUP_START(TestCdsBinaryTree, 0x00040001u, NULL, NULL)
+
+RTT_TEST_START(cds_should_create_binary_tree)
 {
-    CDSLIST_FOREACH(gList, TestItem, item) {
-        testItemRef((CdsListItem*)item, -1);
-    }
-    CdsListDestroy(gList);
-    RTT_EXPECT(gNumberOfItemsInExistance == 0);
+    gTree = CdsBinaryTreeCreate("MyBinaryTree", 7, testNodeUnref);
+    RTT_ASSERT(gTree != NULL);
 }
 RTT_TEST_END
 
-RTT_GROUP_END(TestCdsListSmall,
-        cds_should_create_small_list,
-        cds_should_get_small_list_name,
-        cds_small_list_size_should_be_0_after_creation,
-        cds_small_list_capacity_should_be_20_after_creation,
-        cds_small_list_should_be_empty_after_creation,
-        cds_small_list_should_not_be_full_after_creation,
-        cds_should_push_5_items_at_front_of_small_list,
-        cds_small_list_size_should_be_5_when_partially_filled,
-        cds_small_list_capacity_should_remain_20_when_partially_filled,
-        cds_small_list_should_not_be_empty_when_partially_filled,
-        cds_small_list_should_not_be_full_when_partially_filled,
-        cds_should_push_15_items_at_back_of_small_list,
-        cds_small_list_size_should_be_20_when_full,
-        cds_small_list_capacity_should_remain_20_when_full,
-        cds_small_list_should_not_be_empty_when_full,
-        cds_small_list_should_be_full_when_full,
-        cds_should_fail_to_push_at_the_front_of_small_list_when_full,
-        cds_should_fail_to_push_at_the_back_of_small_list_when_full,
-        cds_should_walk_through_small_list,
-        cds_should_walk_backwards_through_small_list,
-        cds_should_pop_5_items_from_front_of_small_list,
-        cds_should_pop_5_items_from_back_of_small_list,
-        cds_should_insert_item_before_front_of_small_list,
-        cds_should_insert_item_after_front_of_small_list,
-        cds_should_insert_item_before_back_of_small_list,
-        cds_should_insert_item_after_back_of_small_list,
-        cds_small_list_size_should_be_14_after_direct_inserts,
-        cds_small_list_capacity_should_remain_20_after_direct_inserts,
-        cds_small_list_should_not_be_empty_after_direct_inserts,
-        cds_small_list_should_not_be_full_after_direct_inserts,
-        cds_small_list_should_remove_items,
-        cds_small_list_size_should_be_12_after_removing_items,
-        cds_small_list_should_be_as_expected_after_removing_items,
-        cds_should_destroy_small_list)
+RTT_TEST_START(cds_should_get_binary_tree_name)
+{
+    const char* name = CdsBinaryTreeName(gTree);
+    RTT_EXPECT(strcmp(name, "MyBinaryTree") == 0);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_size_should_be_0_after_creation)
+{
+    RTT_ASSERT(CdsBinaryTreeSize(gTree) == 0);
+    RTT_ASSERT(gNumberOfNodesInExistence == 0);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_be_empty_after_creation)
+{
+    RTT_ASSERT(CdsBinaryTreeIsEmpty(gTree));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_set_root)
+{
+    TestNode* root = testNodeAlloc(0, 0);
+    RTT_ASSERT(CdsBinaryTreeSetRoot(gTree, (CdsBinaryTreeNode*)root));
+    RTT_ASSERT(CdsBinaryTreeRoot(gTree) == (CdsBinaryTreeNode*)root);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_failed_to_set_root_twice)
+{
+    TestNode* root = testNodeAlloc(1, 1);
+    RTT_ASSERT(!CdsBinaryTreeSetRoot(gTree, (CdsBinaryTreeNode*)root));
+    testNodeUnref((CdsBinaryTreeNode*)root);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_root_node_should_be_leaf_after_set_root)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(CdsBinaryTreeIsLeaf(root));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_size_should_be_1_after_set_root)
+{
+    RTT_ASSERT(CdsBinaryTreeSize(gTree) == 1);
+    RTT_ASSERT(gNumberOfNodesInExistence == 1);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_capacity_should_be_7_after_set_root)
+{
+    RTT_ASSERT(CdsBinaryTreeCapacity(gTree) == 7);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_not_be_empty_after_set_root)
+{
+    RTT_ASSERT(!CdsBinaryTreeIsEmpty(gTree));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_not_be_full_after_set_root)
+{
+    RTT_ASSERT(!CdsBinaryTreeIsFull(gTree));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_insert_left_of_root)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    TestNode* node = testNodeAlloc(1, 0);
+    RTT_ASSERT(CdsBinaryTreeInsertLeft(root, (CdsBinaryTreeNode*)node));
+    RTT_ASSERT(CdsBinaryTreeLeftNode(root) == (CdsBinaryTreeNode*)node);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_fail_to_insert_left_twice)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    TestNode* node = testNodeAlloc(99, 99);
+    RTT_ASSERT(!CdsBinaryTreeInsertLeft(root, (CdsBinaryTreeNode*)node));
+    testNodeUnref((CdsBinaryTreeNode*)node);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_insert_right_of_root)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    TestNode* node = testNodeAlloc(1, 1);
+    RTT_ASSERT(CdsBinaryTreeInsertRight(root, (CdsBinaryTreeNode*)node));
+    RTT_ASSERT(CdsBinaryTreeRightNode(root) == (CdsBinaryTreeNode*)node);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_fail_to_insert_right_twice)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    TestNode* node = testNodeAlloc(99, 99);
+    RTT_ASSERT(!CdsBinaryTreeInsertRight(root, (CdsBinaryTreeNode*)node));
+    testNodeUnref((CdsBinaryTreeNode*)node);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_size_should_be_3_after_inserting_root_children)
+{
+    RTT_ASSERT(CdsBinaryTreeSize(gTree) == 3);
+    RTT_ASSERT(gNumberOfNodesInExistence == 3);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_capacity_should_be_7_after_inserting_root_children)
+{
+    RTT_ASSERT(CdsBinaryTreeCapacity(gTree) == 7);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_insert_2_nodes_under_left)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    CdsBinaryTreeNode* parent = CdsBinaryTreeLeftNode(root);
+    RTT_ASSERT(parent != NULL);
+
+    TestNode* child1 = testNodeAlloc(2, 0);
+    RTT_ASSERT(CdsBinaryTreeInsertLeft(parent, (CdsBinaryTreeNode*)child1));
+    RTT_ASSERT(CdsBinaryTreeLeftNode(parent) == (CdsBinaryTreeNode*)child1);
+    RTT_ASSERT(CdsBinaryTreeRightNode(parent) == NULL);
+
+    TestNode* child2 = testNodeAlloc(2, 1);
+    RTT_ASSERT(CdsBinaryTreeInsertRight(parent, (CdsBinaryTreeNode*)child2));
+    RTT_ASSERT(CdsBinaryTreeRightNode(parent) == (CdsBinaryTreeNode*)child2);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_insert_2_nodes_under_right)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+    CdsBinaryTreeNode* parent = CdsBinaryTreeRightNode(root);
+    RTT_ASSERT(parent != NULL);
+
+    TestNode* child = testNodeAlloc(2, 2);
+    RTT_ASSERT(CdsBinaryTreeInsertLeft(parent, (CdsBinaryTreeNode*)child));
+    RTT_ASSERT(CdsBinaryTreeLeftNode(parent) == (CdsBinaryTreeNode*)child);
+    RTT_ASSERT(CdsBinaryTreeRightNode(parent) == NULL);
+
+    TestNode* grandchild = testNodeAlloc(3, 5);
+    RTT_ASSERT(CdsBinaryTreeInsertRight((CdsBinaryTreeNode*)child,
+                (CdsBinaryTreeNode*)grandchild));
+    RTT_ASSERT(CdsBinaryTreeRightNode((CdsBinaryTreeNode*)child)
+            == (CdsBinaryTreeNode*)grandchild);
+    RTT_ASSERT(CdsBinaryTreeLeftNode((CdsBinaryTreeNode*)child) == NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_size_should_be_7)
+{
+    RTT_ASSERT(CdsBinaryTreeSize(gTree) == 7);
+    RTT_ASSERT(gNumberOfNodesInExistence == 7);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_capacity_should_be_7)
+{
+    RTT_ASSERT(CdsBinaryTreeCapacity(gTree) == 7);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_not_be_empty)
+{
+    RTT_ASSERT(!CdsBinaryTreeIsEmpty(gTree));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_be_full)
+{
+    RTT_ASSERT(CdsBinaryTreeIsFull(gTree));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_traverse_pre_order)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+
+    TraverseData d;
+    d.nextLevel = 0;
+    d.nextRank = 0;
+    d.ok = true;
+
+    CdsBinaryTreeTraversePreOrder(root, testNodeActionPreOrder, &d);
+
+    RTT_ASSERT(d.ok);
+    RTT_ASSERT(d.nextLevel = MAGIC_LEVEL_DONE);
+    RTT_ASSERT(d.nextRank = MAGIC_RANK_DONE);
+
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_remove_left_node)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+
+    TestNode* left = (TestNode*)CdsBinaryTreeLeftNode(root);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->level == 1);
+    RTT_ASSERT(left->rank == 0);
+
+    CdsBinaryTreeRemoveNode((CdsBinaryTreeNode*)left);
+
+    RTT_ASSERT(CdsBinaryTreeSize(gTree) == 4);
+    RTT_ASSERT(gNumberOfNodesInExistence == 4);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_should_destroy_tree)
+{
+    CdsBinaryTreeDestroy(gTree);
+    RTT_ASSERT(gNumberOfNodesInExistence == 0);
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestCdsBinaryTree,
+        cds_should_create_binary_tree,
+        cds_should_get_binary_tree_name,
+        cds_binary_tree_size_should_be_0_after_creation,
+        cds_binary_tree_should_be_empty_after_creation,
+        cds_binary_tree_set_root,
+        cds_binary_tree_should_failed_to_set_root_twice,
+        cds_binary_tree_root_node_should_be_leaf_after_set_root,
+        cds_binary_tree_size_should_be_1_after_set_root,
+        cds_binary_tree_capacity_should_be_7_after_set_root,
+        cds_binary_tree_should_not_be_empty_after_set_root,
+        cds_binary_tree_should_not_be_full_after_set_root,
+        cds_binary_tree_should_insert_left_of_root,
+        cds_binary_tree_should_fail_to_insert_left_twice,
+        cds_binary_tree_should_insert_right_of_root,
+        cds_binary_tree_should_fail_to_insert_right_twice,
+        cds_binary_tree_size_should_be_3_after_inserting_root_children,
+        cds_binary_tree_capacity_should_be_7_after_inserting_root_children,
+        cds_binary_tree_should_insert_2_nodes_under_left,
+        cds_binary_tree_should_insert_2_nodes_under_right,
+        cds_binary_tree_size_should_be_7,
+        cds_binary_tree_capacity_should_be_7,
+        cds_binary_tree_should_not_be_empty,
+        cds_binary_tree_should_be_full,
+        cds_binary_tree_traverse_pre_order,
+        cds_binary_tree_should_remove_left_node,
+        cds_binary_tree_should_destroy_tree);

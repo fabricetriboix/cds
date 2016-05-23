@@ -36,7 +36,6 @@ struct CdsBinaryTree
     int64_t                capacity;
     int64_t                size;
     CdsBinaryTreeNode*     root;
-    CdsBinaryTreeNodeRef   ref;
     CdsBinaryTreeNodeUnref unref;
 };
 
@@ -48,17 +47,17 @@ struct CdsBinaryTree
 
 
 CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
-        CdsBinaryTreeNodeRef ref, CdsBinaryTreeNodeUnref unref)
+        CdsBinaryTreeNodeUnref unref)
 {
-    CdsBinaryTree* tree = CdsMallocZ(sizeof(tree));
+    CdsBinaryTree* tree = CdsMallocZ(sizeof(*tree));
 
     if (name != NULL) {
         tree->name = strdup(name);
+        CDSASSERT(tree->name != NULL);
     }
     if (capacity > 0) {
         tree->capacity = capacity;
     }
-    tree->ref = ref;
     tree->unref = unref;
 
     return tree;
@@ -138,18 +137,14 @@ bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
     CDSASSERT(parent->tree != NULL);
     CDSASSERT(child != NULL);
 
-    CdsBinaryTree* tree = child->tree;
+    CdsBinaryTree* tree = parent->tree;
     bool ret = false;
     if ((parent->left == NULL) && !CdsBinaryTreeIsFull(tree)) {
-        child->tree = parent->tree;
+        child->tree = tree;
         child->parent = parent;
         child->left = NULL;
         child->right = NULL;
         parent->left = child;
-
-        if (tree->ref != NULL) {
-            tree->ref(child);
-        }
         tree->size++;
         ret = true;
     }
@@ -164,18 +159,14 @@ bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
     CDSASSERT(parent->tree != NULL);
     CDSASSERT(child != NULL);
 
-    CdsBinaryTree* tree = child->tree;
+    CdsBinaryTree* tree = parent->tree;
     bool ret = false;
     if ((parent->right == NULL) && !CdsBinaryTreeIsFull(tree)) {
-        child->tree = parent->tree;
+        child->tree = tree;
         child->parent = parent;
         child->left = NULL;
         child->right = NULL;
         parent->right = child;
-
-        if (tree->ref != NULL) {
-            tree->ref(child);
-        }
         tree->size++;
         ret = true;
     }
@@ -205,11 +196,12 @@ void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node)
             curr->flags = 0;
 
         } else {
+            CdsBinaryTreeNode* tmp = curr->parent;
             if (tree->unref != NULL) {
-                tree->unref(node);
+                tree->unref(curr);
             }
             tree->size--;
-            curr = curr->parent;
+            curr = tmp;
         }
     }
 
@@ -280,8 +272,7 @@ CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
         capacity = left->capacity + right->capacity;
     }
 
-    CdsBinaryTree* tree = CdsBinaryTreeCreate(name, capacity,
-            left->ref, left->unref);
+    CdsBinaryTree* tree = CdsBinaryTreeCreate(name, capacity, left->unref);
     CdsBinaryTreeSetRoot(tree, root);
 
     tree->root->left = left->root;
@@ -304,6 +295,11 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
     // NB: No recursion necessary!
     node->flags = 0;
     for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
+        if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
+            action(curr, cookie);
+            curr->flags |= CDS_BT_FLAG_VISITED;
+        }
+
         if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
             curr->flags |= CDS_BT_FLAG_LEFT;
             curr = curr->left;
@@ -315,7 +311,6 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
             curr->flags = 0;
 
         } else {
-            action(curr, cookie);
             curr = curr->parent;
         }
     }

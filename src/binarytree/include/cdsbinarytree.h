@@ -61,14 +61,6 @@ typedef struct CdsBinaryTreeNode
 } CdsBinaryTreeNode;
 
 
-/** Prototype of a function to add a reference to an item
- *
- * This function should increment the internal reference counter of the node by
- * one.
- */
-typedef void (*CdsBinaryTreeNodeRef)(CdsBinaryTreeNode* node);
-
-
 /** Prototype of a function to remove a reference to an item
  *
  * This function should decrement the internal reference counter of the node by
@@ -108,7 +100,7 @@ typedef void (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
  * \return The newly-allocated binary tree, never NULL
  */
 CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
-        CdsBinaryTreeNodeRef ref, CdsBinaryTreeNodeUnref unref);
+        CdsBinaryTreeNodeUnref unref);
 
 
 /** Destroy a binary tree
@@ -170,6 +162,10 @@ bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree);
  *
  * This function should only be called on an empty tree.
  *
+ * The ownership of the `root` node will be transfered to the tree. If you want
+ * to do more work on the `root` node, you should take a reference from it
+ * prior to calling this function.
+ *
  * \param tree [in,out] Binary tree to manipulate; must not be NULL
  * \param root [in,out] Node to set as the root of the `tree`; must not be NULL
  *
@@ -182,6 +178,10 @@ bool CdsBinaryTreeSetRoot(CdsBinaryTree* tree, CdsBinaryTreeNode* root);
  *
  * You must not insert the same node more than once for a given tree, or random
  * crashes will occur.
+ *
+ * The ownership of the `child` node will be transfered to the tree. If you want
+ * to do more work on the `child` node, you should take a reference from it
+ * prior to calling this function.
  *
  * \param parent [in,out] Parent node; must not be NULL
  * \param child  [in,out] Child node to insert under `parent`; must not be NULL
@@ -197,6 +197,10 @@ bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
  *
  * You must not insert the same node more than once for a given tree, or random
  * crashes will occur.
+ *
+ * The ownership of the `child` node will be transfered to the tree. If you want
+ * to do more work on the `child` node, you should take a reference from it
+ * prior to calling this function.
  *
  * \param parent [in,out] Parent node; must not be NULL
  * \param child  [in,out] Child node to insert under `parent`; must not be NULL
