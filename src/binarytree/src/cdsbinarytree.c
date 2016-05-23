@@ -32,37 +32,13 @@
 
 struct CdsBinaryTree
 {
-    char* name;
-    int64_t size;
-    int8_t flags;
-    CdsListBinaryTreeNode* root;
-    CdsListBinaryTreeNodeRef ref;
-    CdsListBinaryTreeNodeUnref unref;
+    char*                  name;
+    int64_t                size;
+    CdsBinaryTreeNode*     root;
+    CdsBinaryTreeNodeRef   ref;
+    CdsBinaryTreeNodeUnref unref;
 };
 
-
-
-/*-------------------------------+
- | Private function declarations |
- +-------------------------------*/
-
-
-/** Remove a leaf node from a binary tree
- *
- * \param node [in,out] Leaf node to remove; must not be NULL; must be a leaf
- */
-static void cdsBinaryTreeRemoveLeafNode(CdsBinaryTreeNode* node)
-
-
-/** Traversing callback to remove nodes
- *
- * This function will remove `node` if it is a leaf. If it is not a leaf, no
- * action will be taken.
- *
- * \param node   [in,out] Node to remove; must not be NULL; must be a leaf
- * \param cookie [in]     Unused
- */
-static void cdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node, void* cookie);
 
 
 /*---------------------------------+
@@ -78,9 +54,6 @@ CdsBinaryTree* CdsBinaryTreeCreate(const char* name,
     if (name != NULL) {
         tree->name = strdup(name);
     }
-    if (capacity > 0) {
-        tree->capacity = capacity;
-    }
     tree->ref = ref;
     tree->unref = unref;
 
@@ -92,7 +65,9 @@ void CdsBinaryTreeDestroy(CdsBinaryTree* tree)
 {
     CDSASSERT(tree != NULL);
 
-    CdsBinaryTreeRemove(tree->root);
+    if (tree->root != NULL) {
+        CdsBinaryTreeRemoveNode(tree->root);
+    }
     free(tree->name);
     free(tree);
 }
@@ -192,53 +167,6 @@ bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
 }
 
 
-void CdsBinaryTreeRemoveLeft(CdsBinaryTreeNode* node)
-{
-    CDSASSERT(node != NULL);
-    CDSASSERT(node->tree != NULL);
-    CDSASSERT(node->parent != NULL);
-
-    CdsBinaryTree* tree = node->tree;
-
-    if (node->left != NULL) {
-        CdsBinaryTreeRemoveLeft(node->left);
-    }
-    if (node->right != NULL) {
-    bool isleft = true;
-
-    // Traverse the sub-tree in preorder method
-    // NB: Recursion not necessary!
-    for (CdsBinaryTreeNode* curr = node->left; curr != NULL; ) {
-        if (curr->left != NULL) {
-            // Go down the tree one level on the left
-            curr = curr->left;
-            isleft = true;
-
-        } else if (curr->right != NULL) {
-            // Go down the tree one level on the right
-            curr = curr->right;
-            isleft = false;
-
-        } else {
-            // This is a leaf node, remove it and go up the tree one level
-            if (tree->unref != NULL) {
-                tree->unref(curr);
-            }
-            if (isleft) {
-                curr->parent->left = NULL;
-            } else {
-                curr->parent->right = NULL;
-            }
-            if (curr != node) {
-                curr = curr->parent;
-            } else {
-                curr = node; // We remove all the nodes in the sub-tree
-            }
-        }
-    }
-}
-
-
 void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
@@ -293,28 +221,28 @@ CdsBinaryTreeNode* CdsBinaryTreeRoot(const CdsBinaryTree* tree)
 }
 
 
-CdsBinaryTreeNode* CdsBinaryTreeLeft(const CdsBinaryTreeNode* node)
+CdsBinaryTreeNode* CdsBinaryTreeLeftNode(const CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
     return node->left;
 }
 
 
-CdsBinaryTreeNode* CdsBinaryTreeRight(const CdsBinaryTreeNode* node)
+CdsBinaryTreeNode* CdsBinaryTreeRightNode(const CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
     return node->right;
 }
 
 
-CdsBinaryTreeNode* CdsBinaryTreeParent(const CdsBinaryTreeNodd* node)
+CdsBinaryTreeNode* CdsBinaryTreeParentNode(const CdsBinaryTreeNode* node)
 {
 	CDSASSERT(node !=NULL);
 	return node->parent;
 }
 
 
-CdsBinaryTreeNode* CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node)
+bool CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node)
 {
     CDSASSERT(node != NULL);
     return (node->left == NULL) && (node->right == NULL);
@@ -324,7 +252,7 @@ CdsBinaryTreeNode* CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node)
 CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
         CdsBinaryTree* left, CdsBinaryTree* right)
 {
-    CDSASSERT(node != NULL);
+    CDSASSERT(root != NULL);
     CDSASSERT(left != NULL);
     CDSASSERT(right != NULL);
 
@@ -424,49 +352,5 @@ void CdsBinaryTreeTraversePostOrder(CdsBinaryTreeNode* node,
             action(curr, cookie);
             curr = curr->parent;
         }
-    }
-}
-
-
-
-/*----------------------------------+
- | Private function implementations |
- +----------------------------------*/
-
-
-static void cdsBinaryTreeRemoveLeafNode(CdsBinaryTreeNode* node)
-{
-    CDSASSERT(node != NULL);
-    CDSASSERT(node->tree != NULL);
-    CDSASSERT(node->left == NULL);
-    CDSASSERT(node->right == NULL);
-
-    CdsBinaryTree* tree = node->tree;
-    if (tree->unref != NULL) {
-        tree->unref(node);
-    }
-
-    if (node->parent != NULL) {
-        // NB: The root node has no parent
-        if (node->parent->left == node) {
-            node->parent->left = NULL;
-        } else {
-            CDSASSERT(node->parent->right != NULL);
-            node->parent->right = NULL;
-        }
-    }
-
-    tree->size--;
-}
-
-
-static void cdsBinaryTreeActionRemoveNodeIfLeaf(CdsBinaryTreeNode* node,
-        void* cookie)
-{
-    (void)cookie; // unused argument
-    CDSASSERT(node != NULL);
-
-    if (CdsBinaryTreeIsLeaf(node)) {
-        cdsBinaryTreeRemoveLeafNode(node);
     }
 }

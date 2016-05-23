@@ -57,6 +57,7 @@ typedef struct CdsBinaryTreeNode
     struct CdsBinaryTreeNode* parent;
     struct CdsBinaryTreeNode* left;
     struct CdsBinaryTreeNode* right;
+    uint8_t                   flags;
 } CdsBinaryTreeNode;
 
 
@@ -204,7 +205,7 @@ CdsBinaryTreeNode* CdsBinaryTreeRoot(const CdsBinaryTree* tree);
  *
  * \return Child node on left of `node`, or NULL if `node` has no left child
  */
-CdsBinaryTreeNode* CdsBinaryTreeLeft(const CdsBinaryTreeNode* node);
+CdsBinaryTreeNode* CdsBinaryTreeLeftNode(const CdsBinaryTreeNode* node);
 
 
 /** Get the right child of a node
@@ -213,7 +214,7 @@ CdsBinaryTreeNode* CdsBinaryTreeLeft(const CdsBinaryTreeNode* node);
  *
  * \return Child node on right of `node`, or NULL if `node` has no right child
  */
-CdsBinaryTreeNode* CdsBinaryTreeRight(const CdsBinaryTreeNode* node);
+CdsBinaryTreeNode* CdsBinaryTreeRightNode(const CdsBinaryTreeNode* node);
 
 
 /** Get the parent of a node
@@ -222,7 +223,7 @@ CdsBinaryTreeNode* CdsBinaryTreeRight(const CdsBinaryTreeNode* node);
  *
  * \return Parent node `node`, or NULL if `node` has no parent (i.e. it is the root node)
  */
-CdsBinaryTreeNode* CdsBinaryTreeParent(const CdsBinaryTreeNode* node);
+CdsBinaryTreeNode* CdsBinaryTreeParentNode(const CdsBinaryTreeNode* node);
 
 
 /** Check if a node is a leaf
