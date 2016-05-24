@@ -296,7 +296,9 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
     node->flags = 0;
     for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
         if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-            action(curr, cookie);
+            if (!action(curr, cookie)) {
+                break;
+            }
             curr->flags |= CDS_BT_FLAG_VISITED;
         }
 
@@ -333,7 +335,9 @@ void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
 
         } else if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)){
             if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-                action(curr, cookie);
+                if (!action(curr, cookie)) {
+                    break;
+                }
                 curr->flags |= CDS_BT_FLAG_VISITED;
             }
             curr->flags |= CDS_BT_FLAG_RIGHT;
@@ -342,7 +346,9 @@ void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
 
         } else {
             if (!(curr->flags & CDS_BT_FLAG_VISITED)) {
-                action(curr, cookie);
+                if (!action(curr, cookie)) {
+                    break;
+                }
                 curr->flags |= CDS_BT_FLAG_VISITED;
             }
 
@@ -361,18 +367,20 @@ void CdsBinaryTreeTraversePostOrder(CdsBinaryTreeNode* node,
     // NB: No recursion necessary!
     node->flags = 0;
     for (CdsBinaryTreeNode* curr = node; curr != node->parent; ) {
-        if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)) {
-            curr->flags |= CDS_BT_FLAG_RIGHT;
-            curr = curr->right;
-            curr->flags = 0;
-
-        } else if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
+        if (!(curr->flags & CDS_BT_FLAG_LEFT) && (curr->left != NULL)) {
             curr->flags |= CDS_BT_FLAG_LEFT;
             curr = curr->left;
             curr->flags = 0;
 
+        } else if (!(curr->flags & CDS_BT_FLAG_RIGHT) && (curr->right != NULL)){
+            curr->flags |= CDS_BT_FLAG_RIGHT;
+            curr = curr->right;
+            curr->flags = 0;
+
         } else {
-            action(curr, cookie);
+            if (!action(curr, cookie)) {
+                break;
+            }
             curr = curr->parent;
         }
     }

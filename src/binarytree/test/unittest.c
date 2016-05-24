@@ -80,7 +80,7 @@ typedef struct {
 #define MAGIC_LEVEL_DONE 0xcafedeca
 #define MAGIC_RANK_DONE  0xdeadbeef
 
-static void testNodeActionPreOrder(CdsBinaryTreeNode* tnode, void* cookie)
+static bool testNodeActionPreOrder(CdsBinaryTreeNode* tnode, void* cookie)
 {
     TestNode* node = (TestNode*)tnode;
     TraverseData* d = (TraverseData*)cookie;
@@ -116,6 +116,88 @@ static void testNodeActionPreOrder(CdsBinaryTreeNode* tnode, void* cookie)
         d->nextLevel = MAGIC_LEVEL_DONE;
         d->nextRank = MAGIC_RANK_DONE;
     }
+
+    return true;
+}
+
+static bool testNodeActionInOrder(CdsBinaryTreeNode* tnode, void* cookie)
+{
+    TestNode* node = (TestNode*)tnode;
+    TraverseData* d = (TraverseData*)cookie;
+    if ((node->level != d->nextLevel) || (node->rank != d->nextRank)) {
+        d->ok = false;
+    }
+
+    if ((node->level == 2) && (node->rank == 0)) {
+        d->nextLevel = 1;
+        d->nextRank = 0;
+
+    } else if ((node->level == 1) && (node->rank == 0)) {
+        d->nextLevel = 2;
+        d->nextRank = 1;
+
+    } else if ((node->level == 2) && (node->rank == 1)) {
+        d->nextLevel = 0;
+        d->nextRank = 0;
+
+    } else if ((node->level == 0) && (node->rank == 0)) {
+        d->nextLevel = 2;
+        d->nextRank = 2;
+
+    } else if ((node->level == 2) && (node->rank == 2)) {
+        d->nextLevel = 3;
+        d->nextRank = 5;
+
+    } else if ((node->level == 3) && (node->rank == 5)) {
+        d->nextLevel = 1;
+        d->nextRank = 1;
+
+    } else if ((node->level == 1) && (node->rank == 1)) {
+        d->nextLevel = MAGIC_LEVEL_DONE;
+        d->nextRank = MAGIC_RANK_DONE;
+    }
+
+    return true;
+}
+
+static bool testNodeActionPostOrder(CdsBinaryTreeNode* tnode, void* cookie)
+{
+    TestNode* node = (TestNode*)tnode;
+    TraverseData* d = (TraverseData*)cookie;
+    if ((node->level != d->nextLevel) || (node->rank != d->nextRank)) {
+        d->ok = false;
+    }
+
+    if ((node->level == 2) && (node->rank == 0)) {
+        d->nextLevel = 2;
+        d->nextRank = 1;
+
+    } else if ((node->level == 2) && (node->rank == 1)) {
+        d->nextLevel = 1;
+        d->nextRank = 0;
+
+    } else if ((node->level == 1) && (node->rank == 0)) {
+        d->nextLevel = 3;
+        d->nextRank = 5;
+
+    } else if ((node->level == 3) && (node->rank == 5)) {
+        d->nextLevel = 2;
+        d->nextRank = 2;
+
+    } else if ((node->level == 2) && (node->rank == 2)) {
+        d->nextLevel = 1;
+        d->nextRank = 1;
+
+    } else if ((node->level == 1) && (node->rank == 1)) {
+        d->nextLevel = 0;
+        d->nextRank = 0;
+
+    } else if ((node->level == 0) && (node->rank == 0)) {
+        d->nextLevel = MAGIC_LEVEL_DONE;
+        d->nextRank = MAGIC_RANK_DONE;
+    }
+
+    return true;
 }
 
 
@@ -332,6 +414,44 @@ RTT_TEST_START(cds_binary_tree_traverse_pre_order)
 }
 RTT_TEST_END
 
+RTT_TEST_START(cds_binary_tree_traverse_in_order)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+
+    TraverseData d;
+    d.nextLevel = 2;
+    d.nextRank = 0;
+    d.ok = true;
+
+    CdsBinaryTreeTraverseInOrder(root, testNodeActionInOrder, &d);
+
+    RTT_ASSERT(d.ok);
+    RTT_ASSERT(d.nextLevel = MAGIC_LEVEL_DONE);
+    RTT_ASSERT(d.nextRank = MAGIC_RANK_DONE);
+
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_binary_tree_traverse_post_order)
+{
+    CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
+    RTT_ASSERT(root != NULL);
+
+    TraverseData d;
+    d.nextLevel = 2;
+    d.nextRank = 0;
+    d.ok = true;
+
+    CdsBinaryTreeTraversePostOrder(root, testNodeActionPostOrder, &d);
+
+    RTT_ASSERT(d.ok);
+    RTT_ASSERT(d.nextLevel = MAGIC_LEVEL_DONE);
+    RTT_ASSERT(d.nextRank = MAGIC_RANK_DONE);
+
+}
+RTT_TEST_END
+
 RTT_TEST_START(cds_binary_tree_should_remove_left_node)
 {
     CdsBinaryTreeNode* root = CdsBinaryTreeRoot(gTree);
@@ -381,5 +501,7 @@ RTT_GROUP_END(TestCdsBinaryTree,
         cds_binary_tree_should_not_be_empty,
         cds_binary_tree_should_be_full,
         cds_binary_tree_traverse_pre_order,
+        cds_binary_tree_traverse_in_order,
+        cds_binary_tree_traverse_post_order,
         cds_binary_tree_should_remove_left_node,
         cds_binary_tree_should_destroy_tree);

@@ -77,8 +77,10 @@ typedef void (*CdsBinaryTreeNodeUnref)(CdsBinaryTreeNode* node);
  *
  * \param node   [in,out] Node to take action on
  * \param cookie [in]     Cookie for this function
+ *
+ * \return `true` to continue traversing the tree, `false` to stop traversing
  */
-typedef void (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
+typedef bool (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
 
 
 
