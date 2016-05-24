@@ -5,6 +5,8 @@ import os
 artefacts = {}
 
 artefacts['incs'] = [os.path.join("include", "cdscommon.h")]
+srcs = [os.path.join("src", "cdscommon.c")]
+artefacts['objs'] = [variant['env'].StaticObject(src) for src in srcs]
 
 testmain_src = os.path.join("src", "rttestmain.c")
 artefacts['rttestmainobj'] = variant['env'].StaticObject(testmain_src)
