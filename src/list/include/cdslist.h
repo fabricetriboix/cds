@@ -55,21 +55,19 @@ typedef struct CdsList CdsList;
  */
 typedef struct CdsListItem
 {
-    CdsList*            parent;
+    CdsList*            list;
     struct CdsListItem* next;
     struct CdsListItem* prev;
 } CdsListItem;
 
 
-/** Prototype of a function to add or remove references on an item
+/** Prototype of a function to remove a reference to an item
  *
- * You shoud add the `n` argument to the reference counter of the item. If the
- * reference counter of the item drops to 0, the item is not referenced anymore
- * and must be freed.
- *
- * The `n` argument will only be +1 or -1.
+ * This function should decrement the internal reference counter of the item by
+ * one. If the reference counter of the item drops to 0, the item is not
+ * referenced anymore and must be freed.
  */
-typedef void (*CdsListItemRefFn)(CdsListItem* item, int n);
+typedef void (*CdsListItemUnref)(CdsListItem* item);
 
 
 /** Macro to walk through a list */
@@ -95,55 +93,55 @@ typedef void (*CdsListItemRefFn)(CdsListItem* item, int n);
 /** Create a list
  *
  * \param name     [in] Name for this list; may be NULL
- * \param refFn    [in] Function to add or remove a reference to a list item;
- *                      may be NULL if you don't need it.
- * \param capacity [in] Max # of items the list can hold, or 0 for no limit
+ * \param capacity [in] Max # of items the list can store, or 0 for no limit
+ * \param unref    [in] Function to remove a reference to a list item; may be
+ *                      NULL if you don't need it
  *
  * \return The newly-allocated list, never NULL
  */
-CdsList* CdsListCreate(const char* name,
-        CdsListItemRefFn refFn, int64_t capacity);
+CdsList* CdsListCreate(const char* name, int64_t capacity,
+        CdsListItemUnref unref);
 
 
 /** Destroy a list
  *
  * Any item in the list will be unreferrenced.
  *
- * \param self [in,out] The list to destroy; must not be NULL.
+ * \param list [in,out] The list to destroy; must not be NULL.
  */
-void CdsListDestroy(CdsList* self);
+void CdsListDestroy(CdsList* list);
 
 
 /** Get the list's name
  *
- * \param self [in] The list to query; must not be NULL
+ * \param list [in] The list to query; must not be NULL
  */
-const char* CdsListName(const CdsList* self);
+const char* CdsListName(const CdsList* list);
 
 
 /** Get the number of items currently in the list
  *
- * \param self [in] The list to query; must not be NULL
+ * \param list [in] The list to query; must not be NULL
  */
-int64_t CdsListSize(const CdsList* self);
+int64_t CdsListSize(const CdsList* list);
 
 
 /** Get the list's capacity
  *
- * \param self [in] The list to query; must not be NULL
+ * \param list [in] The list to query; must not be NULL
  *
  * \return The list capacity, or 0 if no limit
  */
-int64_t CdsListCapacity(const CdsList* self);
+int64_t CdsListCapacity(const CdsList* list);
 
 
 /** Test if a list is empty
  *
- * \param self [in] The list to query; must not be NULL
+ * \param list [in] The list to query; must not be NULL
  *
  * \return `true` if the list is empty, `false` otherwise
  */
-bool CdsListIsEmpty(const CdsList* self);
+bool CdsListIsEmpty(const CdsList* list);
 
 
 /** Test is a list is full
@@ -151,11 +149,11 @@ bool CdsListIsEmpty(const CdsList* self);
  * This function will always return `false` if no limit has been set on the list
  * capacity when `CdsListCreate()` has been called.
  *
- * \param self [in] The list to query; must not be NULL
+ * \param list [in] The list to query; must not be NULL
  *
  * \return `true` if the list is full, `false` otherwise
  */
-bool CdsListIsFull(const CdsList* self);
+bool CdsListIsFull(const CdsList* list);
 
 
 /** Insert an item at the front of the list
@@ -163,12 +161,16 @@ bool CdsListIsFull(const CdsList* self);
  * If no limit has been set to limit the list capacity, this function always
  * succeeds.
  *
- * \param self [in,out] The list where to insert the item; must not be NULL
+ * The ownership of `item` will be transferred to `list`. If you need to do more
+ * work on `item`, you will need to take a reference from it prior to calling
+ * this function.
+ *
+ * \param list [in,out] The list where to insert the item; must not be NULL
  * \param item [in,out] The item to insert; must not be NULL
  *
  * \return `true` if success, `false` if the list is full
  */
-bool CdsListPushFront(CdsList* self, CdsListItem* item);
+bool CdsListPushFront(CdsList* list, CdsListItem* item);
 
 
 /** Insert an item at the back of the list
@@ -176,18 +178,26 @@ bool CdsListPushFront(CdsList* self, CdsListItem* item);
  * If no limit has been set to limit the list capacity, this function always
  * succeeds.
  *
- * \param self [in,out] The list where to insert the item; must not be NULL
+ * The ownership of `item` will be transferred to `list`. If you need to do more
+ * work on `item`, you will need to take a reference from it prior to calling
+ * this function.
+ *
+ * \param list [in,out] The list where to insert the item; must not be NULL
  * \param item [in,out] The item to insert; must not be NULL
  *
  * \return `true` if success, `false` if the list is full
  */
-bool CdsListPushBack(CdsList* self, CdsListItem* item);
+bool CdsListPushBack(CdsList* list, CdsListItem* item);
 
 
 /** Insert an item after the given item
  *
  * If no limit has been set to limit the list capacity, this function always
  * succeeds.
+ *
+ * The ownership of `item` will be transferred to `list`. If you need to do more
+ * work on `item`, you will need to take a reference from it prior to calling
+ * this function.
  *
  * \param pos  [in,out] Item after which to insert new item; must not be NULL
  * \param item [in,out] The item to insert; must not be NULL
@@ -202,6 +212,10 @@ bool CdsListInsertAfter(CdsListItem* pos, CdsListItem* item);
  * If no limit has been set to limit the list capacity, this function always
  * succeeds.
  *
+ * The ownership of `item` will be transferred to `list`. If you need to do more
+ * work on `item`, you will need to take a reference from it prior to calling
+ * this function.
+ *
  * \param pos  [in,out] Item before which to insert new item; must not be NULL
  * \param item [in,out] The item to insert; must not be NULL
  *
@@ -215,11 +229,11 @@ bool CdsListInsertBefore(CdsListItem* pos, CdsListItem* item);
  * Please note the item is not removed from the list, use `CdsListPopFront()`
  * for that effect.
  *
- * \param self [in] The list to query
+ * \param list [in] The list to query
  *
  * \return The item at the front, or NULL if `list` is empty
  */
-CdsListItem* CdsListFront(const CdsList* self);
+CdsListItem* CdsListFront(const CdsList* list);
 
 
 /** Get the item at the back of the list
@@ -227,11 +241,11 @@ CdsListItem* CdsListFront(const CdsList* self);
  * Please note the item is not removed from the list, use `CdsListPopBack()`
  * for that effect.
  *
- * \param self [in] The list to query
+ * \param list [in] The list to query
  *
  * \return The item at the back, or NULL if `list` is empty
  */
-CdsListItem* CdsListBack(const CdsList* self);
+CdsListItem* CdsListBack(const CdsList* list);
 
 
 /** Get the next item in the list
@@ -254,6 +268,8 @@ CdsListItem* CdsListPrev(const CdsListItem* pos);
 
 /** Remove the given item from its list
  *
+ * The ownership of the `item` will be transferred to you.
+ *
  * \param item [in,out] The item to remove from the list
  */
 void CdsListRemove(CdsListItem* item);
@@ -261,20 +277,20 @@ void CdsListRemove(CdsListItem* item);
 
 /** Pop an item at the front of the list
  *
- * \param self [in,out] The list from where to pop an item
+ * \param list [in,out] The list from where to pop an item
  *
  * \return The popped item, or NULL if list is empty
  */
-CdsListItem* CdsListPopFront(CdsList* self);
+CdsListItem* CdsListPopFront(CdsList* list);
 
 
 /** Pop an item at the back of the list
  *
- * \param self [in,out] The list from where to pop an item
+ * \param list [in,out] The list from where to pop an item
  *
  * \return The popped item, or NULL if list is empty
  */
-CdsListItem* CdsListPopBack(CdsList* self);
+CdsListItem* CdsListPopBack(CdsList* list);
 
 
 

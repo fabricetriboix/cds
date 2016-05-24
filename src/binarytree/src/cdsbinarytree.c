@@ -107,7 +107,11 @@ bool CdsBinaryTreeIsEmpty(const CdsBinaryTree* tree)
 bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree)
 {
     CDSASSERT(tree != NULL);
-    return (tree->size >= tree->capacity);
+    bool isFull = false;
+    if ((tree->capacity > 0) && (tree->size >= tree->capacity)) {
+        isFull = true;
+    }
+    return isFull;
 }
 
 

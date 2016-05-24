@@ -31,7 +31,7 @@ struct CdsList
     int64_t          size;
     int64_t          capacity;
     CdsListItem      head;
-    CdsListItemRefFn ref;
+    CdsListItemUnref unref;
 };
 
 
@@ -41,106 +41,105 @@ struct CdsList
  +---------------------------------*/
 
 
-CdsList* CdsListCreate(const char* name,
-        CdsListItemRefFn refFn, int64_t capacity)
+CdsList* CdsListCreate(const char* name, int64_t capacity,
+        CdsListItemUnref unref)
 {
-    CdsList* self = malloc(sizeof(*self));
-    CDSASSERT(self != NULL);
-    memset(self, 0, sizeof(*self));
+    CdsList* list = CdsMallocZ(sizeof(*list));
 
     if (name != NULL) {
-        self->name = strdup(name);
+        list->name = strdup(name);
     }
     if (capacity > 0) {
-        self->capacity = capacity;
+        list->capacity = capacity;
     }
-    self->head.next = &(self->head);
-    self->head.prev = &(self->head);
-    self->head.parent = self;
-    self->ref = refFn;
+    list->head.next = &(list->head);
+    list->head.prev = &(list->head);
+    list->head.list = list;
+    list->unref = unref;
 
-    return self;
+    return list;
 }
 
 
-void CdsListDestroy(CdsList* self)
+void CdsListDestroy(CdsList* list)
 {
-    CDSASSERT(self != NULL);
+    CDSASSERT(list != NULL);
 
-    while (!CdsListIsEmpty(self)) {
-        (void)CdsListPopFront(self);
+    while (!CdsListIsEmpty(list)) {
+        CdsListItem* tmp = CdsListPopFront(list);
+        CDSASSERT(tmp != NULL);
+        if (list->unref != NULL) {
+            list->unref(tmp);
+        }
     }
-    free(self->name);
-    free(self);
+    free(list->name);
+    free(list);
 }
 
 
-const char* CdsListName(const CdsList* self)
+const char* CdsListName(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    return self->name;
+    CDSASSERT(list != NULL);
+    return list->name;
 }
 
 
-int64_t CdsListSize(const CdsList* self)
+int64_t CdsListSize(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    return self->size;
+    CDSASSERT(list != NULL);
+    return list->size;
 }
 
 
-int64_t CdsListCapacity(const CdsList* self)
+int64_t CdsListCapacity(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    return self->capacity;
+    CDSASSERT(list != NULL);
+    return list->capacity;
 }
 
 
-bool CdsListIsEmpty(const CdsList* self)
+bool CdsListIsEmpty(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    return self->size <= 0;
+    CDSASSERT(list != NULL);
+    return list->size <= 0;
 }
 
 
-bool CdsListIsFull(const CdsList* self)
+bool CdsListIsFull(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
+    CDSASSERT(list != NULL);
     bool isFull = false;
-    if ((self->capacity > 0) && (self->size >= self->capacity)) {
+    if ((list->capacity > 0) && (list->size >= list->capacity)) {
         isFull = true;
     }
     return isFull;
 }
 
 
-bool CdsListPushFront(CdsList* self, CdsListItem* item)
+bool CdsListPushFront(CdsList* list, CdsListItem* item)
 {
-    CDSASSERT(self != NULL);
-    return CdsListInsertAfter(&(self->head), item);
+    CDSASSERT(list != NULL);
+    return CdsListInsertAfter(&(list->head), item);
 }
 
 
-bool CdsListPushBack(CdsList* self, CdsListItem* item)
+bool CdsListPushBack(CdsList* list, CdsListItem* item)
 {
-    CDSASSERT(self != NULL);
-    return CdsListInsertBefore(&(self->head), item);
+    CDSASSERT(list != NULL);
+    return CdsListInsertBefore(&(list->head), item);
 }
 
 
 bool CdsListInsertAfter(CdsListItem* pos, CdsListItem* item)
 {
     CDSASSERT(pos != NULL);
-    CdsList* list = pos->parent;
+    CdsList* list = pos->list;
     CDSASSERT(list != NULL);
     CDSASSERT(item != NULL);
 
     bool inserted = false;
     if ((list->capacity <= 0) || (list->size < list->capacity)) {
-        if (list->ref != NULL) {
-            list->ref(item, 1);
-        }
-        item->parent = list;
+        item->list = list;
         item->next = pos->next;
         item->prev = pos;
         pos->next->prev = item;
@@ -155,16 +154,13 @@ bool CdsListInsertAfter(CdsListItem* pos, CdsListItem* item)
 bool CdsListInsertBefore(CdsListItem* pos, CdsListItem* item)
 {
     CDSASSERT(pos != NULL);
-    CdsList* list = pos->parent;
+    CdsList* list = pos->list;
     CDSASSERT(list != NULL);
     CDSASSERT(item != NULL);
 
     bool inserted = false;
     if ((list->capacity <= 0) || (list->size < list->capacity)) {
-        if (list->ref != NULL) {
-            list->ref(item, 1);
-        }
-        item->parent = list;
+        item->list = list;
         item->next = pos;
         item->prev = pos->prev;
         pos->prev->next = item;
@@ -176,30 +172,30 @@ bool CdsListInsertBefore(CdsListItem* pos, CdsListItem* item)
 }
 
 
-CdsListItem* CdsListFront(const CdsList* self)
+CdsListItem* CdsListFront(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    if (self->size <= 0) {
+    CDSASSERT(list != NULL);
+    if (list->size <= 0) {
         return NULL;
     }
-    return self->head.next;
+    return list->head.next;
 }
 
 
-CdsListItem* CdsListBack(const CdsList* self)
+CdsListItem* CdsListBack(const CdsList* list)
 {
-    CDSASSERT(self != NULL);
-    if (self->size <= 0) {
+    CDSASSERT(list != NULL);
+    if (list->size <= 0) {
         return NULL;
     }
-    return self->head.prev;
+    return list->head.prev;
 }
 
 
 CdsListItem* CdsListNext(const CdsListItem* item)
 {
     CDSASSERT(item != NULL);
-    CdsList* list = item->parent;
+    CdsList* list = item->list;
     CDSASSERT(list != NULL);
     CdsListItem* next = item->next;
     if (next == &(list->head)) {
@@ -212,7 +208,7 @@ CdsListItem* CdsListNext(const CdsListItem* item)
 CdsListItem* CdsListPrev(const CdsListItem* item)
 {
     CDSASSERT(item != NULL);
-    CdsList* list = item->parent;
+    CdsList* list = item->list;
     CDSASSERT(list != NULL);
     CdsListItem* prev = item->prev;
     if (prev == &(list->head)) {
@@ -225,7 +221,7 @@ CdsListItem* CdsListPrev(const CdsListItem* item)
 void CdsListRemove(CdsListItem* item)
 {
     CDSASSERT(item != NULL);
-    CdsList* list = item->parent;
+    CdsList* list = item->list;
     CDSASSERT(list != NULL);
 
     item->next->prev = item->prev;
@@ -234,16 +230,13 @@ void CdsListRemove(CdsListItem* item)
 
     item->next = NULL;
     item->prev = NULL;
-    item->parent = NULL;
-    if (list->ref != NULL) {
-        list->ref(item, -1);
-    }
+    item->list = NULL;
 }
 
 
-CdsListItem* CdsListPopFront(CdsList* self)
+CdsListItem* CdsListPopFront(CdsList* list)
 {
-    CdsListItem* front = CdsListFront(self);
+    CdsListItem* front = CdsListFront(list);
     if (front != NULL) {
         CdsListRemove(front);
     }
@@ -251,9 +244,9 @@ CdsListItem* CdsListPopFront(CdsList* self)
 }
 
 
-CdsListItem* CdsListPopBack(CdsList* self)
+CdsListItem* CdsListPopBack(CdsList* list)
 {
-    CdsListItem* back = CdsListBack(self);
+    CdsListItem* back = CdsListBack(list);
     if (back != NULL) {
         CdsListRemove(back);
     }

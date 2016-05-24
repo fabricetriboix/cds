@@ -92,10 +92,7 @@ typedef bool (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
 /** Create a binary tree
  *
  * \param name     [in] Name for this binary tree; may be NULL
- * \param capacity [in] Maximum number of nodes that can be stored in this
- *                      binary tree; 0 = no limit
- * \param ref      [in] Function to add a reference to a node; may be NULL if
- *                      you don't need it
+ * \param capacity [in] Max # of nodes the tree can store; 0 = no limit
  * \param unref    [in] Function to remove a reference to a node; may be NULL if
  *                      you don't need it
  *

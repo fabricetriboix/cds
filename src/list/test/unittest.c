@@ -26,15 +26,15 @@ typedef struct {
     int         x;
 } TestItem;
 
-static int gNumberOfItemsInExistance = 0;
+static int gNumberOfItemsInExistence = 0;
 
-static void testItemRef(CdsListItem* cdsListItem, int n)
+static void testItemUnref(CdsListItem* cdsListItem)
 {
     TestItem* item = (TestItem*)cdsListItem;
-    item->ref += n;
+    item->ref--;
     if (item->ref <= 0) {
         free(item);
-        gNumberOfItemsInExistance--;
+        gNumberOfItemsInExistence--;
     }
 }
 
@@ -43,7 +43,7 @@ static TestItem* testItemAlloc(void)
     TestItem* item = malloc(sizeof(*item));
     memset(item, 0, sizeof(*item));
     item->ref = 1;
-    gNumberOfItemsInExistance++;
+    gNumberOfItemsInExistence++;
     return item;
 }
 
@@ -54,7 +54,7 @@ RTT_GROUP_START(TestCdsListSmall, 0x00030001u, NULL, NULL)
 
 RTT_TEST_START(cds_should_create_small_list)
 {
-    gList = CdsListCreate("SmallList", testItemRef, 20);
+    gList = CdsListCreate("SmallList", 20, testItemUnref);
     RTT_ASSERT(gList != NULL);
 }
 RTT_TEST_END
@@ -69,6 +69,7 @@ RTT_TEST_END
 RTT_TEST_START(cds_small_list_size_should_be_0_after_creation)
 {
     RTT_ASSERT(CdsListSize(gList) == 0);
+    RTT_ASSERT(gNumberOfItemsInExistence == 0);
 }
 RTT_TEST_END
 
@@ -97,13 +98,14 @@ RTT_TEST_START(cds_should_push_5_items_at_front_of_small_list)
         item->x = (4 - i) * 10;
         RTT_ASSERT(CdsListPushFront(gList, (CdsListItem*)item));
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 5);
+    RTT_EXPECT(gNumberOfItemsInExistence == 5);
 }
 RTT_TEST_END
 
 RTT_TEST_START(cds_small_list_size_should_be_5_when_partially_filled)
 {
     RTT_ASSERT(CdsListSize(gList) == 5);
+    RTT_ASSERT(gNumberOfItemsInExistence == 5);
 }
 RTT_TEST_END
 
@@ -133,13 +135,14 @@ RTT_TEST_START(cds_should_push_15_items_at_back_of_small_list)
         item->x = (i + 5) * 10;
         RTT_ASSERT(CdsListPushBack(gList, (CdsListItem*)item));
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 20);
+    RTT_EXPECT(gNumberOfItemsInExistence == 20);
 }
 RTT_TEST_END
 
 RTT_TEST_START(cds_small_list_size_should_be_20_when_full)
 {
     RTT_ASSERT(CdsListSize(gList) == 20);
+    RTT_ASSERT(gNumberOfItemsInExistence == 20);
 }
 RTT_TEST_END
 
@@ -165,7 +168,7 @@ RTT_TEST_START(cds_should_fail_to_push_at_the_front_of_small_list_when_full)
 {
     TestItem* item = testItemAlloc();
     RTT_ASSERT(!CdsListPushFront(gList, (CdsListItem*)item));
-    testItemRef((CdsListItem*)item, -1);
+    testItemUnref((CdsListItem*)item);
 }
 RTT_TEST_END
 
@@ -173,7 +176,7 @@ RTT_TEST_START(cds_should_fail_to_push_at_the_back_of_small_list_when_full)
 {
     TestItem* item = testItemAlloc();
     RTT_ASSERT(!CdsListPushBack(gList, (CdsListItem*)item));
-    testItemRef((CdsListItem*)item, -1);
+    testItemUnref((CdsListItem*)item);
 }
 RTT_TEST_END
 
@@ -205,9 +208,9 @@ RTT_TEST_START(cds_should_pop_5_items_from_front_of_small_list)
         TestItem* item = (TestItem*)CdsListPopFront(gList);
         RTT_ASSERT(item != NULL);
         RTT_EXPECT(item->x == (i * 10));
-        testItemRef((CdsListItem*)item, -1);
+        testItemUnref((CdsListItem*)item);
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 15);
+    RTT_EXPECT(gNumberOfItemsInExistence == 15);
 }
 RTT_TEST_END
 
@@ -217,9 +220,9 @@ RTT_TEST_START(cds_should_pop_5_items_from_back_of_small_list)
         TestItem* item = (TestItem*)CdsListPopBack(gList);
         RTT_ASSERT(item != NULL);
         RTT_EXPECT(item->x == (19 - i) * 10);
-        testItemRef((CdsListItem*)item, -1);
+        testItemUnref((CdsListItem*)item);
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 10);
+    RTT_EXPECT(gNumberOfItemsInExistence == 10);
 }
 RTT_TEST_END
 
@@ -231,7 +234,7 @@ RTT_TEST_START(cds_should_insert_item_before_front_of_small_list)
     TestItem* item = testItemAlloc();
     item->x = 40;
     RTT_ASSERT(CdsListInsertBefore((CdsListItem*)front, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 11);
+    RTT_EXPECT(gNumberOfItemsInExistence == 11);
 }
 RTT_TEST_END
 
@@ -243,7 +246,7 @@ RTT_TEST_START(cds_should_insert_item_after_front_of_small_list)
     TestItem* item = testItemAlloc();
     item->x = 45;
     RTT_ASSERT(CdsListInsertAfter((CdsListItem*)front, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 12);
+    RTT_EXPECT(gNumberOfItemsInExistence == 12);
 }
 RTT_TEST_END
 
@@ -255,7 +258,7 @@ RTT_TEST_START(cds_should_insert_item_before_back_of_small_list)
     TestItem* item = testItemAlloc();
     item->x = 135;
     RTT_ASSERT(CdsListInsertBefore((CdsListItem*)back, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 13);
+    RTT_EXPECT(gNumberOfItemsInExistence == 13);
 }
 RTT_TEST_END
 
@@ -267,13 +270,14 @@ RTT_TEST_START(cds_should_insert_item_after_back_of_small_list)
     TestItem* item = testItemAlloc();
     item->x = 150;
     RTT_ASSERT(CdsListInsertAfter((CdsListItem*)back, (CdsListItem*)item));
-    RTT_EXPECT(gNumberOfItemsInExistance == 14);
+    RTT_EXPECT(gNumberOfItemsInExistence == 14);
 }
 RTT_TEST_END
 
 RTT_TEST_START(cds_small_list_size_should_be_14_after_direct_inserts)
 {
     RTT_ASSERT(CdsListSize(gList) == 14);
+    RTT_ASSERT(gNumberOfItemsInExistence == 14);
 }
 RTT_TEST_END
 
@@ -302,17 +306,18 @@ RTT_TEST_START(cds_small_list_should_remove_items)
         TestItem* next = (TestItem*)CdsListNext((const CdsListItem*)item);
         if ((item->x % 10) != 0) {
             CdsListRemove((CdsListItem*)item);
-            testItemRef((CdsListItem*)item, -1);
+            testItemUnref((CdsListItem*)item);
         }
         item = next;
     }
-    RTT_EXPECT(gNumberOfItemsInExistance == 12);
+    RTT_EXPECT(gNumberOfItemsInExistence == 12);
 }
 RTT_TEST_END
 
 RTT_TEST_START(cds_small_list_size_should_be_12_after_removing_items)
 {
     RTT_ASSERT(CdsListSize(gList) == 12);
+    RTT_ASSERT(gNumberOfItemsInExistence == 12);
 }
 RTT_TEST_END
 
@@ -328,11 +333,8 @@ RTT_TEST_END
 
 RTT_TEST_START(cds_should_destroy_small_list)
 {
-    CDSLIST_FOREACH(gList, TestItem, item) {
-        testItemRef((CdsListItem*)item, -1);
-    }
     CdsListDestroy(gList);
-    RTT_EXPECT(gNumberOfItemsInExistance == 0);
+    RTT_EXPECT(gNumberOfItemsInExistence == 0);
 }
 RTT_TEST_END
 
