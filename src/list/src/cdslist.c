@@ -44,9 +44,7 @@ struct CdsList
 CdsList* CdsListCreate(const char* name,
         CdsListItemRefFn refFn, int64_t capacity)
 {
-    CdsList* list = malloc(sizeof(*list));
-    CDSASSERT(list != NULL);
-    memset(list, 0, sizeof(*list));
+    CdsList* list = CdsMallocZ(sizeof(*list));
 
     if (name != NULL) {
         list->name = strdup(name);
