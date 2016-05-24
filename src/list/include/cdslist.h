@@ -55,7 +55,7 @@ typedef struct CdsList CdsList;
  */
 typedef struct CdsListItem
 {
-    CdsList*            parent;
+    CdsList*            list;
     struct CdsListItem* next;
     struct CdsListItem* prev;
 } CdsListItem;
