@@ -11,9 +11,6 @@ AddOption("--target", dest='target', default="",
 AddOption("--host", dest='host', default="",
         help="Compilation host; eg: x64-linux (default: auto-detect)")
 
-AddOption("--prefix", dest='prefix', default="",
-        help="Installation directory (default: under build directory)")
-
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
 
@@ -22,6 +19,9 @@ AddOption("--rtsys-path", dest='rtsys_path', default="/usr/local/rtsys",
 
 AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
         help="Do not use ccache")
+
+AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
+        help="Also build the documentation")
 
 rtsysPath = os.path.abspath(GetOption('rtsys_path'))
 
@@ -61,13 +61,14 @@ if not GetOption('verbose'):
 if GetOption('use_ccache'):
     env['CCCOM'] = "ccache " + env['CCCOM']
 
+env['top'] = os.getcwd()
+
 
 # Variants (NB: the first variant is the one built by default)
 
 variantNames = ['release', 'debug']
 settings = plfsettings.getPlfSettings(variantNames)
 variants = {}
-prefix = GetOption('prefix')
 
 for v in variantNames:
     variants[v] = {}
@@ -76,16 +77,8 @@ for v in variantNames:
 
     tmp = os.path.abspath(os.path.join("build", tgtplf, v))
     variants[v]['build_root'] = tmp
-
-    if prefix == "":
-        tmp = os.path.join(tmp, "install")
-    else:
-        tmp = prefix
-    variants[v]['install_root'] = tmp
-    variants[v]['install_inc'] = os.path.join(tmp, "include")
-    variants[v]['install_lib'] = os.path.join(tmp, "lib")
-    variants[v]['install_bin'] = os.path.join(tmp, "bin")
-    variants[v]['install_doc'] = os.path.join(tmp, "doc")
+    variants[v]['build_inc'] = os.path.join(tmp, "include")
+    variants[v]['build_doc'] = os.path.join(tmp, "doc")
 
     variants[v]['env'] = env.Clone()
     variants[v]['env']['CC'] = settings[v]['cc']
@@ -109,7 +102,7 @@ for v in variantNames:
         conf = Configure(variants[v]['env'])
 
         if not conf.CheckProg("doxygen"):
-            print("doxygen not found; doxygen documentation will not be generted")
+            print("doxygen not found; doxygen documentation will not be generated")
         else:
             hasDoxy = True
             if not conf.CheckProg("dot"):
