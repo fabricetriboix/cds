@@ -1,3 +1,4 @@
 TODO list:
- - doxygen: set PROJECT_NUMBER
- - doxygen: use markdown for code snippets
+ - Create install script
+ - Make it easy to create a debian package
+ - Make it easy to create an rpm package

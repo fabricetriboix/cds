@@ -11,9 +11,6 @@ AddOption("--target", dest='target', default="",
 AddOption("--host", dest='host', default="",
         help="Compilation host; eg: x64-linux (default: auto-detect)")
 
-AddOption("--prefix", dest='prefix', default="",
-        help="Installation directory (default: under build directory)")
-
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
 
@@ -72,7 +69,6 @@ env['top'] = os.getcwd()
 variantNames = ['release', 'debug']
 settings = plfsettings.getPlfSettings(variantNames)
 variants = {}
-prefix = GetOption('prefix')
 
 for v in variantNames:
     variants[v] = {}
@@ -81,17 +77,8 @@ for v in variantNames:
 
     tmp = os.path.abspath(os.path.join("build", tgtplf, v))
     variants[v]['build_root'] = tmp
+    variants[v]['build_inc'] = os.path.join(tmp, "include")
     variants[v]['build_doc'] = os.path.join(tmp, "doc")
-
-    if prefix == "":
-        tmp = os.path.join(tmp, "install")
-    else:
-        tmp = prefix
-    variants[v]['install_root'] = tmp
-    variants[v]['install_inc'] = os.path.join(tmp, "include")
-    variants[v]['install_lib'] = os.path.join(tmp, "lib")
-    variants[v]['install_bin'] = os.path.join(tmp, "bin")
-    variants[v]['install_doc'] = os.path.join(tmp, "doc")
 
     variants[v]['env'] = env.Clone()
     variants[v]['env']['CC'] = settings[v]['cc']

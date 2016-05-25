@@ -41,7 +41,7 @@ lib = variant['env'].StaticLibrary('cds', objs)
 # NB2: Don't use `os.getcwd()` here, it will give you the variant
 # directory.
 for inc in incs:
-    variant['env'].Install(variant['install_inc'], "#" + inc)
+    variant['env'].Install(variant['build_inc'], "#" + inc)
 
 # Build doxygen documentation
 # NB: I can't get `Command()` to work, so I just do it manually at the end...
@@ -56,9 +56,6 @@ if variant['env'].GetOption('make_doc'):
         for inc in incs:
             cmd.append(inc)
         atexit.register(subprocess.call, cmd)
-
-# Install final libraries
-variant['env'].Install(variant['install_lib'], lib)
 
 # Build test program
 if len(testsrcs) > 0:
