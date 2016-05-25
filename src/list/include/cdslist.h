@@ -41,7 +41,7 @@
 typedef struct CdsList CdsList;
 
 
-/* List item
+/** List item
  *
  * You can "derive" from this structure, as long as it remains at the top of
  * your own structure definition. For example:

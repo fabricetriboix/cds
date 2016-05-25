@@ -1,6 +1,8 @@
 Import('variant')
 
 import os
+import subprocess
+import atexit
 
 incs = []
 objs = []
@@ -42,17 +44,18 @@ for inc in incs:
     variant['env'].Install(variant['install_inc'], "#" + inc)
 
 # Build doxygen documentation
-# XXX
-if variant['env']['HAS_DOXYGEN'] == "TODOyes":
-    cmd = os.path.join(".", "run_doxygen.py")
-    cmd += " "
-    if variant['env']['HAS_DOT'] == "yes":
-        cmd += "--hasdot"
-    doxyDir = os.path.join(variant['build_root'], "doxy")
-    cmd += doxyDir + " "
-    cmd += " ".join(incs)
-    variant['env'].Command("doc", incs, cmd)
-    variant['env'].Install(variant['install_doc'], doxyDir)
+# NB: I can't get `Command()` to work, so I just do it manually at the end...
+if variant['env'].GetOption('make_doc'):
+    if variant['env']['HAS_DOXYGEN'] != "yes":
+        print("WARNING: doxygen not found, documentation will not be built")
+    else:
+        cmd = [os.path.join(variant['env']['top'], "mkdoc.py")]
+        if variant['env']['HAS_DOT'] == "yes":
+            cmd.append("--hasdot")
+        cmd.append(variant['build_doc'])
+        for inc in incs:
+            cmd.append(inc)
+        atexit.register(subprocess.call, cmd)
 
 # Install final libraries
 variant['env'].Install(variant['install_lib'], lib)

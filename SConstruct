@@ -23,6 +23,9 @@ AddOption("--rtsys-path", dest='rtsys_path', default="/usr/local/rtsys",
 AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
         help="Do not use ccache")
 
+AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
+        help="Also build the documentation")
+
 rtsysPath = os.path.abspath(GetOption('rtsys_path'))
 
 
@@ -61,6 +64,8 @@ if not GetOption('verbose'):
 if GetOption('use_ccache'):
     env['CCCOM'] = "ccache " + env['CCCOM']
 
+env['top'] = os.getcwd()
+
 
 # Variants (NB: the first variant is the one built by default)
 
@@ -76,6 +81,7 @@ for v in variantNames:
 
     tmp = os.path.abspath(os.path.join("build", tgtplf, v))
     variants[v]['build_root'] = tmp
+    variants[v]['build_doc'] = os.path.join(tmp, "doc")
 
     if prefix == "":
         tmp = os.path.join(tmp, "install")
@@ -109,7 +115,7 @@ for v in variantNames:
         conf = Configure(variants[v]['env'])
 
         if not conf.CheckProg("doxygen"):
-            print("doxygen not found; doxygen documentation will not be generted")
+            print("doxygen not found; doxygen documentation will not be generated")
         else:
             hasDoxy = True
             if not conf.CheckProg("dot"):
