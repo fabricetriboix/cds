@@ -1,4 +1,4 @@
-def getPlfSettings(variantNames):
+def GetPlfSettings(variantNames):
     settings = {}
 
     # Common settings for all variants
@@ -15,7 +15,20 @@ def getPlfSettings(variantNames):
         settings[v]['linkflags'] = ['-pthread']
         settings[v]['libpath'] = []
 
-    # Customisation per variant
-    settings['debug']['ccflags'].extend(['-O0', '-g'])
-    settings['release']['ccflags'].extend(['-O3'])
+        # Default installation directories
+        settings[v]['prefix'] = "/usr/local"
+        settings[v]['bindir'] = "bin"
+        settings[v]['libdir'] = "lib"
+        settings[v]['incdir'] = "include"
+        settings[v]['docdir'] = "doc"
+        settings[v]['etcdir'] = "etc"
+        settings[v]['shrdir'] = "share"
+        settings[v]['vardir'] = "var"
+
+        # Customisation per variant
+        if v == "debug":
+            settings[v]['ccflags'].extend(['-O0', '-g'])
+        elif v == "release":
+            settings[v]['ccflags'].extend(['-O3'])
+
     return settings
