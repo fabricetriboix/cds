@@ -9,7 +9,7 @@ autoplf = autodetectplf.autodetectplf()
 
 AddOption("--target", dest='target', default=autoplf,
         help="Compilation target; eg: x64-linux, arm-linux "
-                "(default is auto-detected: " + autoplf + ")")
+                "(auto-detected default: " + autoplf + ")")
 
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
@@ -62,7 +62,7 @@ env['top'] = os.getcwd()
 # Variants (NB: the first variant is the one built by default)
 
 variantNames = ['release', 'debug']
-settings = plfsettings.getPlfSettings(variantNames)
+settings = plfsettings.GetPlfSettings(variantNames)
 variants = {}
 
 for v in variantNames:

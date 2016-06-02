@@ -20,6 +20,8 @@ Getting started
     $ scons --help
     $ scons --mkdoc -j4    # Build
     $ ./run_unit_tests.py
+    $ ./install.py --help
+    $ ./install.py         # Install
 
 Read the doxygen documentation to learn how to use cds.
 
