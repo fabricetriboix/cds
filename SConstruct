@@ -21,7 +21,7 @@ AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
         help="Do not use ccache")
 
 AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
-        help="Also build the documentation")
+        help="Also build the documentation for all variants")
 
 rtsysPath = os.path.abspath(GetOption('rtsys_path'))
 
@@ -31,7 +31,7 @@ rtsysPath = os.path.abspath(GetOption('rtsys_path'))
 tgtplf = GetOption('target')
 if not tgtplf:
     tgtplf = autoplf
-    print("--target not set, using autodetected: " + tgtplf)
+    print("--target not set, using auto-detected: " + tgtplf)
 
 path = os.path.join("src", "plf", tgtplf)
 if not os.path.isdir(path) or not os.access(path, os.R_OK):
@@ -56,8 +56,6 @@ if not GetOption('verbose'):
 if GetOption('use_ccache'):
     env['CCCOM'] = "ccache " + env['CCCOM']
 
-env['top'] = os.getcwd()
-
 
 # Variants (NB: the first variant is the one built by default)
 
@@ -68,6 +66,7 @@ variants = {}
 for v in variantNames:
     variants[v] = {}
     variants[v]['target'] = tgtplf
+    variants[v]['topdir'] = os.getcwd()
 
     path = os.path.abspath(os.path.join("build", tgtplf, v))
     variants[v]['build_root'] = path
@@ -95,6 +94,8 @@ for v in variantNames:
     if not GetOption('clean') and not GetOption('help'):
         conf = Configure(variants[v]['env'])
 
+        hasDoxy = False
+        hasDot = False
         if not conf.CheckProg("doxygen"):
             print("doxygen not found; doxygen documentation will not be generated")
         else:

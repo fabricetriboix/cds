@@ -44,18 +44,16 @@ for inc in incs:
     variant['env'].Install(variant['build_inc'], "#" + inc)
 
 # Build doxygen documentation
-# NB: I can't get `Command()` to work, so I just do it manually at the end...
-if variant['env'].GetOption('make_doc'):
-    if variant['env']['HAS_DOXYGEN'] != "yes":
-        print("WARNING: doxygen not found, documentation will not be built")
-    else:
-        cmd = [os.path.join(variant['env']['top'], "mkdoc.py")]
-        if variant['env']['HAS_DOT'] == "yes":
-            cmd.append("--hasdot")
-        cmd.append(variant['build_doc'])
-        for inc in incs:
-            cmd.append(inc)
-        atexit.register(subprocess.call, cmd)
+# NB: I can't get `Command()` to work, so I just do it manually when scons
+# finishes...
+if variant['env'].GetOption('make_doc') and variant['env']['HAS_DOXYGEN'] == "yes":
+    cmd = [os.path.join(variant['topdir'], "mkdoc.py")]
+    if variant['env']['HAS_DOT'] == "yes":
+        cmd.append("--hasdot")
+    cmd.append(variant['build_doc'])
+    for inc in incs:
+        cmd.append(inc)
+    atexit.register(subprocess.call, cmd)
 
 # Build test program
 if len(testsrcs) > 0:

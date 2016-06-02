@@ -19,7 +19,7 @@ Getting started
 
     $ scons --help
     $ scons --mkdoc -j4    # Build
-    $ ./run_unit_tests.py
+    $ ./run_unit_tests.py  # Run the unit tests
     $ ./install.py --help
     $ ./install.py         # Install
 
