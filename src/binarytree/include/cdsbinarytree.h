@@ -27,6 +27,7 @@
 #define CDSBINARYTREE_h_
 
 #include "cdscommon.h"
+#include "cdsbinarytree_private.h"
 
 
 
@@ -51,14 +52,7 @@ typedef struct CdsBinaryTree CdsBinaryTree;
  *         char* z;
  *     } MyItem;
  */
-typedef struct CdsBinaryTreeNode
-{
-    CdsBinaryTree*            tree;
-    struct CdsBinaryTreeNode* parent;
-    struct CdsBinaryTreeNode* left;
-    struct CdsBinaryTreeNode* right;
-    uint8_t                   flags;
-} CdsBinaryTreeNode;
+typedef struct CdsBinaryTreeNode CdsBinaryTreeNode;
 
 
 /** Prototype of a function to remove a reference to an item
@@ -118,7 +112,7 @@ void CdsBinaryTreeDestroy(CdsBinaryTree* tree);
 const char* CdsBinaryTreeName(const CdsBinaryTree* tree);
 
 
-/** Get the maxmim number of nodes this binary tree can hold
+/** Get the maximum number of nodes this binary tree can hold
  *
  * \param tree [in] Binary tree to query; must not be NULL
  *

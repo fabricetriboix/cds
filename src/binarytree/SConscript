@@ -4,7 +4,8 @@ import os
 
 artefacts = {}
 
-artefacts['incs'] = [os.path.join("include", "cdsbinarytree.h")]
+artefacts['incs'] = [os.path.join("include", "cdsbinarytree.h"),
+                     os.path.join("include", "cdsbinarytree_private.h")]
 srcs = [os.path.join("src", "cdsbinarytree.c")]
 artefacts['objs'] = [variant['env'].StaticObject(src) for src in srcs]
 artefacts['testsrcs'] = [os.path.join("test", "unittest.c")]
