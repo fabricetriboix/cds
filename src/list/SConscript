@@ -4,7 +4,8 @@ import os
 
 artefacts = {}
 
-artefacts['incs'] = [os.path.join("include", "cdslist.h")]
+artefacts['incs'] = [os.path.join("include", "cdslist.h"),
+                     os.path.join("include", "cdslist_private.h")]
 srcs = [os.path.join("src", "cdslist.c")]
 artefacts['objs'] = [variant['env'].StaticObject(src) for src in srcs]
 artefacts['testsrcs'] = [os.path.join("test", "unittest.c")]

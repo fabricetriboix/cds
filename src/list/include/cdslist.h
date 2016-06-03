@@ -29,6 +29,7 @@
 #define CDSLIST_h_
 
 #include "cdscommon.h"
+#include "cdslist_private.h"
 
 
 
@@ -53,12 +54,7 @@ typedef struct CdsList CdsList;
  *         char* z;
  *     } MyItem;
  */
-typedef struct CdsListItem
-{
-    CdsList*            list;
-    struct CdsListItem* next;
-    struct CdsListItem* prev;
-} CdsListItem;
+typedef struct CdsListItem CdsListItem;
 
 
 /** Prototype of a function to remove a reference to an item
