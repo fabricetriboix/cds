@@ -55,7 +55,7 @@ typedef struct CdsBinaryTree CdsBinaryTree;
 typedef struct CdsBinaryTreeNode CdsBinaryTreeNode;
 
 
-/** Prototype of a function to remove a reference to an item
+/** Prototype of a function to remove a reference to a node
  *
  * This function should decrement the internal reference counter of the node by
  * one. If the internal reference counter reaches zero, the node should be
