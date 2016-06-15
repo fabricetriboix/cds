@@ -19,6 +19,9 @@
 #include <string.h>
 
 
+#define KEYSIZE 64
+
+
 typedef struct {
     CdsMapItem item;
     int ref;
@@ -53,14 +56,13 @@ static TestItem* testItemAlloc(int value)
 
 static int gNumberOfKeysInExistence = 0;
 
-// TODO: use the last char of a key for the ref counter
 static void testKeyUnref(void* tkey)
 {
-    // The first character is the reference counter, on 8 bit.
+    // The last character is the reference counter, on 8 bit.
     // The rest is the actual string.
     char* key = (char*)tkey;
-    (*key)--;
-    if (*key <= 0) {
+    key[KEYSIZE-1]--;
+    if (key[KEYSIZE-1] <= 0) {
         free(key);
         gNumberOfKeysInExistence--;
     }
@@ -68,13 +70,12 @@ static void testKeyUnref(void* tkey)
 
 static char* testKeyCreate(int value)
 {
-    int size = 64;
-    char* key = malloc(size);
+    char* key = malloc(KEYSIZE);
     if (key == NULL) {
         abort();
     }
-    *key = 1;
-    snprintf(key + 1, size - 1, "%08d", value);
+    key[KEYSIZE-1] = 1;
+    snprintf(key, KEYSIZE - 1, "%08d", value);
     gNumberOfKeysInExistence++;
     return key;
 }
@@ -82,41 +83,12 @@ static char* testKeyCreate(int value)
 static int testKeyCompare(void* leftKey, void* rightKey, void* cookie)
 {
     (void)cookie; // unused argument
-    char* left = (char*)leftKey + 1;
-    char* right = (char*)rightKey + 1;
+    char* left = (char*)leftKey;
+    char* right = (char*)rightKey;
     return strcmp(left, right);
 }
 
 CdsMap* gMap = NULL;
-
-
-/*
-
-The first test map looks like this:
-
-                               100
-                                |
-                     +----------+----------+
-                     |                     |
-                   (1,0)                 (1,1)
-                     |                     |
-              +------+----+         +------+------+
-              |           |         |             |
-            (2,0)       (2,1)     (2,2)          NULL
-                                    |
-                              +-----+----+
-                              |          |
-                             NULL      (3,5)
- */
-
-typedef struct {
-    int nextLevel;
-    int nextRank;
-    bool ok;
-} TraverseData;
-
-#define MAGIC_LEVEL_DONE 0xcafedeca
-#define MAGIC_RANK_DONE  0xdeadbeef
 
 
 RTT_GROUP_START(TestCdsMap, 0x00050001u, NULL, NULL)
@@ -191,7 +163,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_first_item)
     RTT_ASSERT(root->item.parent == NULL);
     RTT_ASSERT(root->item.left == NULL);
     RTT_ASSERT(root->item.right == NULL);
-    char* key = (char*)(root->item.key) + 1;
+    char* key = (char*)(root->item.key);
     RTT_ASSERT(strcmp(key, "00000100") == 0);
     RTT_ASSERT(root->item.factor == 0);
     RTT_ASSERT(root->value == 100);
@@ -218,7 +190,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_2nd_item)
     RTT_ASSERT(root != NULL);
     RTT_ASSERT(root->item.parent == NULL);
     RTT_ASSERT(root->item.left == NULL);
-    char* key = (char*)(root->item.key) + 1;
+    char* key = (char*)(root->item.key);
     RTT_ASSERT(strcmp(key, "00000100") == 0);
     RTT_ASSERT(root->item.factor == 1);
     RTT_ASSERT(root->value == 100);
@@ -228,7 +200,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_2nd_item)
     RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
     RTT_ASSERT(right->item.left == NULL);
     RTT_ASSERT(right->item.right == NULL);
-    key = (char*)(right->item.key) + 1;
+    key = (char*)(right->item.key);
     RTT_ASSERT(strcmp(key, "00000200") == 0);
     RTT_ASSERT(right->item.factor == 0);
     RTT_ASSERT(right->value == 200);
@@ -254,7 +226,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_3rd_item)
     TestItem* root = *((TestItem**)gMap);
     RTT_ASSERT(root != NULL);
     RTT_ASSERT(root->item.parent == NULL);
-    char* key = (char*)(root->item.key) + 1;
+    char* key = (char*)(root->item.key);
     RTT_ASSERT(strcmp(key, "00000200") == 0);
     RTT_ASSERT(root->item.factor == 0);
     RTT_ASSERT(root->value == 200);
@@ -264,7 +236,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_3rd_item)
     RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
     RTT_ASSERT(left->item.left == NULL);
     RTT_ASSERT(left->item.right == NULL);
-    key = (char*)(left->item.key) + 1;
+    key = (char*)(left->item.key);
     RTT_ASSERT(strcmp(key, "00000100") == 0);
     RTT_ASSERT(left->item.factor == 0);
     RTT_ASSERT(left->value == 100);
@@ -274,7 +246,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_3rd_item)
     RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
     RTT_ASSERT(right->item.left == NULL);
     RTT_ASSERT(right->item.right == NULL);
-    key = (char*)(right->item.key) + 1;
+    key = (char*)(right->item.key);
     RTT_ASSERT(strcmp(key, "00000300") == 0);
     RTT_ASSERT(right->item.factor == 0);
     RTT_ASSERT(right->value == 300);
