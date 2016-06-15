@@ -7,6 +7,6 @@ artefacts = {}
 artefacts['incs'] = [os.path.join("include", "cdsmap.h")]
 srcs = [os.path.join("src", "cdsmap.c")]
 artefacts['objs'] = [variant['env'].StaticObject(src) for src in srcs]
-#artefacts['testsrcs'] = [os.path.join("test", "unittest.c")]
+artefacts['testsrcs'] = [os.path.join("test", "unittest.c")]
 
 Return('artefacts')

@@ -31,10 +31,10 @@
 
 struct CdsMap
 {
+    CdsMapItem*     root;
     char*           name;
     int64_t         capacity;
     int64_t         size;
-    CdsMapItem*     root;
     CdsMapCompare   compare;
     void*           cookie;
     CdsMapKeyUnref  keyUnref;
@@ -153,7 +153,7 @@ static CdsMapItem* cdsMapRotateRightLeft(CdsMap* map, CdsMapItem* subroot);
  *
  * \return The root of the rotated sub-tree
  */
-static CdsMapItem* cdsMapRotateLeftRight(CdsMap* map, CdsMapItem* subroot)
+static CdsMapItem* cdsMapRotateLeftRight(CdsMap* map, CdsMapItem* subroot);
 
 
 /** Insert a new item left or right of the given `item`
@@ -195,7 +195,7 @@ CdsMap* CdsMapCreate(const char* name, int64_t capacity, CdsMapCompare compare,
     map->keyUnref = keyUnref;
     map->itemUnref = itemUnref;
 
-    return tree;
+    return map;
 }
 
 
@@ -920,7 +920,8 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
     //
     // For each node going up, we check if the left or right subtree grew.
 
-    for (   CdsMapItem* subroot = item->parent, bool balanced = false;
+    bool balanced = false;
+    for (   CdsMapItem* subroot = item->parent;
             (subroot != NULL) && !balanced;
             subroot = subroot->parent) {
         if (cdsMapIsRightChild(item)) {
