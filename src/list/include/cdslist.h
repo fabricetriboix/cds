@@ -111,6 +111,8 @@ void CdsListDestroy(CdsList* list);
 /** Get the list's name
  *
  * \param list [in] The list to query; must not be NULL
+ *
+ * \return The list's name, which may be NULL
  */
 const char* CdsListName(const CdsList* list);
 
