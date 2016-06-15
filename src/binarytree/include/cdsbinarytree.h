@@ -14,13 +14,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** Plain binary tree
+/** Binary tree
  *
- * \defgroup cdsbinarytree Plain binary tree
+ * \defgroup cdsbinarytree Binary tree
  * \addtogroup cdsbinarytree
  * @{
  *
- * Plain binary tree.
+ * Binary tree.
  */
 
 #ifndef CDSBINARYTREE_h_
@@ -108,6 +108,8 @@ void CdsBinaryTreeDestroy(CdsBinaryTree* tree);
 /** Get the tree's name
  *
  * \param tree [in] Binary tree to query; must not be NULL
+ *
+ * \return The tree's name, which may be NULL
  */
 const char* CdsBinaryTreeName(const CdsBinaryTree* tree);
 
