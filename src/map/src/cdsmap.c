@@ -944,7 +944,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
     for (   CdsMapItem* subroot = item->parent;
             (subroot != NULL) && !balanced;
             subroot = subroot->parent) {
-        if (cdsMapIsRightChild(item)) {
+        if (item == subroot->right) {
             // The sub-tree on the right of `subroot` increased its height by 1
             switch (subroot->factor) {
             case -1 :
@@ -960,13 +960,14 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
                 } else {
                     subroot = cdsMapRotateRightLeft(map, subroot);
                 }
+                balanced = true;
                 break;
             default :
                 CDSPANIC_MSG("Impossible balance factor: %d",
                         (int)subroot->factor);
             }
         } else {
-            CDSASSERT(cdsMapIsLeftChild(item));
+            CDSASSERT(item == subroot->left);
             // The sub-tree on the left of `subroot` increased its height by 1
             switch (subroot->factor) {
             case -1 :
@@ -975,6 +976,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
                 } else {
                     subroot = cdsMapRotateLeftRight(map, subroot);
                 }
+                balanced = true;
                 break;
             case 0 :
                 subroot->factor = -1;
