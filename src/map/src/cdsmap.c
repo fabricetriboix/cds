@@ -518,6 +518,16 @@ static CdsMapItem* cdsMapRotateRightRight(CdsMap* map, CdsMapItem* subroot)
     item->left = subroot;
     subroot->parent = item;
 
+    // Update balance factors
+    if (item->factor == 0) {
+        subroot->factor = 1;
+        item->factor = -1;
+    } else {
+        CDSASSERT(item->factor == 1);
+        subroot->factor = 0;
+        item->factor = 0;
+    }
+
     return item;
 }
 
@@ -552,6 +562,16 @@ static CdsMapItem* cdsMapRotateLeftLeft(CdsMap* map, CdsMapItem* subroot)
     // Make `subroot` the right child of `item`
     item->right = subroot;
     subroot->parent = item;
+
+    // Update balance factors
+    if (item->factor == 0) {
+        subroot->factor = -1;
+        item->factor = 1;
+    } else {
+        CDSASSERT(item->factor == -1);
+        subroot->factor = 0;
+        item->factor = 0;
+    }
 
     return item;
 }
@@ -895,7 +915,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
             item->factor = 0;
             return; // Balance factor of `item->parent` does not change
         }
-        item->factor = 1;
+        item->factor = -1;
     } else {
         CDSASSERT(item->right == NULL);
         item->right = newitem;
@@ -904,7 +924,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
             item->factor = 0;
             return; // Balance factor of `item->parent` does not change
         }
-        item->factor = -1;
+        item->factor = 1;
     }
 
 

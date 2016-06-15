@@ -53,6 +53,7 @@ static TestItem* testItemAlloc(int value)
 
 static int gNumberOfKeysInExistence = 0;
 
+// TODO: use the last char of a key for the ref counter
 static void testKeyUnref(void* tkey)
 {
     // The first character is the reference counter, on 8 bit.
@@ -74,6 +75,7 @@ static char* testKeyCreate(int value)
     }
     *key = 1;
     snprintf(key + 1, size - 1, "%08d", value);
+    gNumberOfKeysInExistence++;
     return key;
 }
 
@@ -185,9 +187,97 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_first_item)
     // NB: The first field in the `CdsMap` structure is the pointer to the root
     // This is ugly, but necessary...
     TestItem* root = *((TestItem**)gMap);
-    RTT_ASSERT(root->value == 100);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
     RTT_ASSERT(root->item.left == NULL);
     RTT_ASSERT(root->item.right == NULL);
+    char* key = (char*)(root->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_insert_2nd_item)
+{
+    TestItem* item = testItemAlloc(200);
+    char* key = testKeyCreate(200);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_size_should_be_2_after_2nd_insert)
+{
+    RTT_ASSERT(CdsMapSize(gMap) == 2);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_check_map_shape_after_inserting_2nd_item)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    RTT_ASSERT(root->item.left == NULL);
+    char* key = (char*)(root->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 1);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 200);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_insert_3rd_item_and_perform_single_RR_rotation)
+{
+    TestItem* item = testItemAlloc(300);
+    char* key = testKeyCreate(300);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_size_should_be_3_after_3rd_insert)
+{
+    RTT_ASSERT(CdsMapSize(gMap) == 3);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_check_map_shape_after_inserting_3rd_item)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 200);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.left == NULL);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(left->item.factor == 0);
+    RTT_ASSERT(left->value == 100);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key) + 1;
+    RTT_ASSERT(strcmp(key, "00000300") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 300);
 }
 RTT_TEST_END
 
@@ -210,4 +300,10 @@ RTT_GROUP_END(TestCdsMap,
         cds_map_size_should_be_1_after_inserting_first_item,
         cds_map_should_not_be_empty_after_inserting_first_item,
         cds_check_map_shape_after_inserting_first_item,
+        cds_map_insert_2nd_item,
+        cds_map_size_should_be_2_after_2nd_insert,
+        cds_check_map_shape_after_inserting_2nd_item,
+        cds_map_insert_3rd_item_and_perform_single_RR_rotation,
+        cds_map_size_should_be_3_after_3rd_insert,
+        cds_check_map_shape_after_inserting_3rd_item,
         cds_should_destroy_map);

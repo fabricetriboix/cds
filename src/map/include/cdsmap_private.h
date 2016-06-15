@@ -35,8 +35,8 @@ struct CdsMapItem
     struct CdsMapItem* left;
     struct CdsMapItem* right;
     void*              key;
-    uint8_t            flags;
     int8_t             factor;
+    uint8_t            flags;
 };
 
 
