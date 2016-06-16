@@ -464,6 +464,28 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_6th_item)
 }
 RTT_TEST_END
 
+RTT_TEST_START(cds_map_replace_item)
+{
+    TestItem* item = testItemAlloc(151);
+    char* key = testKeyCreate(150);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_size_should_not_change_after_replacing_item)
+{
+    RTT_ASSERT(CdsMapSize(gMap) == 6);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_find_replaced_item)
+{
+    TestItem* item = (TestItem*)CdsMapSearch(gMap, "00000150");
+    RTT_ASSERT(item != NULL);
+    RTT_ASSERT(item->value == 151);
+}
+RTT_TEST_END
+
 RTT_TEST_START(cds_map_insert_3_items_and_perform_double_RL_rotation)
 {
     TestItem* item = testItemAlloc(250);
@@ -478,7 +500,7 @@ RTT_TEST_START(cds_map_insert_3_items_and_perform_double_RL_rotation)
 
                  100
              50           200
-           25        150        300
+           25        151        300
                              250   350
     */
 
@@ -511,7 +533,7 @@ RTT_TEST_END
           100
       50             250
     25          200      300
-             150      275   350
+             151      275   350
 
 */
 RTT_TEST_START(cds_check_map_shape_after_inserting_3_items)
@@ -549,7 +571,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_3_items)
     key = (char*)(leftleft->item.key);
     RTT_ASSERT(strcmp(key, "00000150") == 0);
     RTT_ASSERT(leftleft->item.factor == 0);
-    RTT_ASSERT(leftleft->value == 150);
+    RTT_ASSERT(leftleft->value == 151);
 
     TestItem* right = (TestItem*)(subroot->item.right);
     RTT_ASSERT(right != NULL);
@@ -618,6 +640,9 @@ RTT_GROUP_END(TestCdsMap,
         cds_check_map_shape_after_inserting_5th_item,
         cds_map_insert_6th_item_and_perform_double_LR_rotation,
         cds_check_map_shape_after_inserting_6th_item,
+        cds_map_replace_item,
+        cds_map_size_should_not_change_after_replacing_item,
+        cds_map_find_replaced_item,
         cds_map_insert_3_items_and_perform_double_RL_rotation,
         cds_map_size_should_be_9_after_inserting_3_items,
         cds_map_should_not_be_empty_after_inserting_3_items,
