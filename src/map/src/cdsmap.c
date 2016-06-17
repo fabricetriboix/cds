@@ -378,9 +378,170 @@ bool CdsMapRemove(CdsMap* map, void* key)
 void CdsMapItemRemove(CdsMap* map, CdsMapItem* item)
 {
     CDSASSERT(map != NULL);
+    CDSASSERT(map->root != NULL);
     CDSASSERT(item != NULL);
 
-    // TODO
+    CDSASSERT(map->size > 0);
+    map->size--;
+
+    CdsMapItem* tmp;
+    if ((item->left != NULL) && (item->right != NULL)) {
+        // Find the previous (or next) in-order item
+        // NB: The choice to take the previous or next in-order item is based on
+        // the item's factor, in an attempt to minimise the chances of a
+        // rotation being required.
+        tmp = NULL;
+        if (item->factor <= 0) {
+            tmp = cdsMapDigRight(item->left); // use previous in-order item
+        } else {
+            tmp = cdsMapDigLeft(item->right); // use next in-order item
+        }
+        CDSASSERT(tmp != NULL);
+        CDSASSERT((tmp->left == NULL) || (tmp->right == NULL));
+
+        // Exchange `item` and `tmp`
+        // NB: This temporarily breaks the binary search tree, until we actually
+        // delete `item`
+        CdsMapItem* parent = tmp->parent;
+        CDSASSERT(parent != NULL);
+        CdsMapItem* left = tmp->left;
+        CdsMapItem* right = tmp->right;
+        if (cdsMapIsLeftChild(tmp)) {
+            parent->left = item;
+        } else {
+            CDSASSERT(cdsMapIsRightChild(tmp));
+            parent->right = item;
+        }
+        if (cdsMapIsLeftChild(item)) {
+            item->parent->left = tmp;
+        } else if (cdsMapIsRightChild(item)) {
+            item->parent->right = tmp;
+        } else {
+            CDSASSERT(item->parent == NULL);
+            map->root = tmp;
+        }
+        tmp->parent = item->parent;
+        if (item->left != NULL) {
+            item->left->parent = tmp;
+        }
+        tmp->left = item->left;
+        if (item->right != NULL) {
+            item->right->parent = tmp;
+        }
+        tmp->right = item->right;
+        tmp->factor = item->factor;
+        item->parent = parent;
+        if (left != NULL) {
+            left->parent = item;
+        }
+        item->left = left;
+        if (right != NULL) {
+            right->parent = item;
+        }
+        item->right = right;
+    }
+
+    // Here, `item` is a leaf or has only one child; remove `item` from the tree
+    CDSASSERT((item->left == NULL) || (item->right == NULL));
+    tmp = NULL;
+    if (item->left != NULL) {
+        tmp = item->left;
+    } else if (item->right != NULL) {
+        tmp = item->right;
+    }
+    if (tmp != NULL) {
+        tmp->parent = item->parent;
+    }
+    bool leftDecrease = false;
+    if (cdsMapIsLeftChild(item)) {
+        item->parent->left = tmp;
+        leftDecrease = true;
+    } else if (cdsMapIsRightChild(item)) {
+        item->parent->right = tmp;
+    } else {
+        map->root = tmp;
+    }
+
+    // Retrace the tree
+    //
+    // A deletion always changes the balance factor of `item->parent`, so we
+    // need to update the balance factors of all ancestors and perform rotations
+    // as necessary.
+    //
+    // This is done by going up the tree, starting from `item->parent`, and
+    // finishing when the current node's factor does not change, or if we reach
+    // the root of the tree. Please remember we just removed `item` from the
+    // tree.
+    //
+    // For each node going up, we check if the left or right subtree decreased.
+
+    bool balanced = false;
+    for (   CdsMapItem* subroot = item->parent;
+            (subroot != NULL) && !balanced;
+            subroot = subroot->parent) {
+        if (leftDecrease) {
+            // The sub-tree on the left of `subroot` decreased its height by 1
+            switch (subroot->factor) {
+            case -1 :
+                subroot->factor = 0;
+                break;
+            case 0 :
+                subroot->factor = 1;
+                balanced = true;
+                break;
+            case 1 :
+                tmp = subroot->right;
+                CDSASSERT(tmp != NULL);
+                if (tmp->factor >= 0) {
+                    subroot = cdsMapRotateRightRight(map, subroot);
+                } else {
+                    subroot = cdsMapRotateRightLeft(map, subroot);
+                }
+                if (subroot->factor != 0) {
+                    balanced = true;
+                }
+                break;
+            default :
+                CDSPANIC_MSG("Impossible balance factor: %d",
+                        (int)subroot->factor);
+            }
+        } else {
+            // The sub-tree on the right of `subroot` decreased its height by 1
+            switch (subroot->factor) {
+            case -1 :
+                tmp = subroot->left;
+                CDSASSERT(tmp != NULL);
+                if (tmp->factor <= 0) {
+                    subroot = cdsMapRotateLeftLeft(map, subroot);
+                } else {
+                    subroot = cdsMapRotateLeftRight(map, subroot);
+                }
+                if (subroot->factor != 0) {
+                    balanced = true;
+                }
+                break;
+            case 0 :
+                subroot->factor = -1;
+                balanced = true;
+                break;
+            case 1 :
+                subroot->factor = 0;
+                break;
+            default :
+                CDSPANIC_MSG("Impossible balance factor: %d",
+                        (int)subroot->factor);
+            }
+        }
+        leftDecrease = cdsMapIsLeftChild(subroot);
+    }
+
+    // Dereference `item` and its key
+    if (map->keyUnref != NULL) {
+        map->keyUnref(item->key);
+    }
+    if (map->itemUnref != NULL) {
+        map->itemUnref(item);
+    }
 }
 
 
@@ -928,7 +1089,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
     }
 
 
-    // Rebalance the tree
+    // Retrace the tree
     //
     // If we are here, the insertion changes the balance factor of
     // `item->parent`, so we need to update the balance factors of all ancestors
