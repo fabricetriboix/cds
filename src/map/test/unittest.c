@@ -1347,6 +1347,412 @@ RTT_TEST_START(cds_check_deep_map_after_insertion_with_LL_rotation)
 }
 RTT_TEST_END
 
+RTT_TEST_START(cds_prepare_deep_map_for_insertion_with_RR_rotation)
+{
+    RTT_ASSERT(CdsMapRemove(gMap, "00000010"));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_perform_RR_rotation_when_inserting_into_deep_map)
+{
+    TestItem* item = testItemAlloc(250);
+    char* key = testKeyCreate(250);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+/* Tree at this stage
+
+                   100
+             50           150
+        25     75      125   200
+      12  33     82             250
+*/
+RTT_TEST_START(cds_check_deep_map_after_insertion_with_RR_rotation)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* l = (TestItem*)(root->item.left);
+    RTT_ASSERT(l != NULL);
+    RTT_ASSERT(l->item.parent == (CdsMapItem*)root);
+    key = (char*)(l->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(l->item.factor == 0);
+    RTT_ASSERT(l->value == 50);
+
+    TestItem* ll = (TestItem*)(l->item.left);
+    RTT_ASSERT(ll != NULL);
+    RTT_ASSERT(ll->item.parent == (CdsMapItem*)l);
+    key = (char*)(ll->item.key);
+    RTT_ASSERT(strcmp(key, "00000025") == 0);
+    RTT_ASSERT(ll->item.factor == 0);
+    RTT_ASSERT(ll->value == 25);
+
+    TestItem* lll = (TestItem*)(ll->item.left);
+    RTT_ASSERT(lll != NULL);
+    RTT_ASSERT(lll->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(lll->item.left == NULL);
+    RTT_ASSERT(lll->item.right == NULL);
+    key = (char*)(lll->item.key);
+    RTT_ASSERT(strcmp(key, "00000012") == 0);
+    RTT_ASSERT(lll->item.factor == 0);
+    RTT_ASSERT(lll->value == 12);
+
+    TestItem* llr = (TestItem*)(ll->item.right);
+    RTT_ASSERT(llr != NULL);
+    RTT_ASSERT(llr->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(llr->item.left == NULL);
+    RTT_ASSERT(llr->item.right == NULL);
+    key = (char*)(llr->item.key);
+    RTT_ASSERT(strcmp(key, "00000033") == 0);
+    RTT_ASSERT(llr->item.factor == 0);
+    RTT_ASSERT(llr->value == 33);
+
+    TestItem* lr = (TestItem*)(l->item.right);
+    RTT_ASSERT(lr != NULL);
+    RTT_ASSERT(lr->item.parent == (CdsMapItem*)l);
+    RTT_ASSERT(lr->item.left == NULL);
+    key = (char*)(lr->item.key);
+    RTT_ASSERT(strcmp(key, "00000075") == 0);
+    RTT_ASSERT(lr->item.factor == 1);
+    RTT_ASSERT(lr->value = 75);
+
+    TestItem* lrr = (TestItem*)(lr->item.right);
+    RTT_ASSERT(lrr != NULL);
+    RTT_ASSERT(lrr->item.parent == (CdsMapItem*)lr);
+    RTT_ASSERT(lrr->item.left == NULL);
+    RTT_ASSERT(lrr->item.right == NULL);
+    key = (char*)(lrr->item.key);
+    RTT_ASSERT(strcmp(key, "00000082") == 0);
+    RTT_ASSERT(lrr->item.factor == 0);
+    RTT_ASSERT(lrr->value == 82);
+
+    TestItem* r = (TestItem*)(root->item.right);
+    RTT_ASSERT(r != NULL);
+    RTT_ASSERT(r->item.parent == (CdsMapItem*)root);
+    key = (char*)(r->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(r->item.factor == 1);
+    RTT_ASSERT(r->value == 150);
+
+    TestItem* rl = (TestItem*)(r->item.left);
+    RTT_ASSERT(rl != NULL);
+    RTT_ASSERT(rl->item.parent = (CdsMapItem*)r);
+    RTT_ASSERT(rl->item.left == NULL);
+    RTT_ASSERT(rl->item.right == NULL);
+    key = (char*)(rl->item.key);
+    RTT_ASSERT(strcmp(key, "00000125") == 0);
+    RTT_ASSERT(rl->item.factor == 0);
+    RTT_ASSERT(rl->value == 125);
+
+    TestItem* rr = (TestItem*)(r->item.right);
+    RTT_ASSERT(rr != NULL);
+    RTT_ASSERT(rr->item.parent == (CdsMapItem*)r);
+    key = (char*)(rr->item.key);
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(rr->item.factor == 1);
+    RTT_ASSERT(rr->value == 200);
+
+    TestItem* rrr = (TestItem*)(rr->item.right);
+    RTT_ASSERT(rrr != NULL);
+    RTT_ASSERT(rrr->item.parent == (CdsMapItem*)rr);
+    RTT_ASSERT(rrr->item.left == NULL);
+    RTT_ASSERT(rrr->item.right == NULL);
+    key = (char*)(rrr->item.key);
+    RTT_ASSERT(strcmp(key, "00000250") == 0);
+    RTT_ASSERT(rrr->item.factor == 0);
+    RTT_ASSERT(rrr->value == 250);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_prepare_deep_map_for_insertion_with_LR_rotation)
+{
+    RTT_ASSERT(CdsMapRemove(gMap, "00000250"));
+
+    TestItem* item = testItemAlloc(70);
+    char* key = testKeyCreate(70);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+
+/* Tree at this stage
+
+                     100
+             50            150
+        25       75     125   200
+      12  33   70  82
+*/
+RTT_TEST_START(cds_should_perform_LR_rotation_when_inserting_into_deep_map)
+{
+    TestItem* item = testItemAlloc(80);
+    char* key = testKeyCreate(80);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+/* Tree at this stage
+
+              75
+         50         100
+     25    70     82      150
+   12  33       80     125   200
+*/
+RTT_TEST_START(cds_check_deep_map_after_insertion_with_LR_rotation)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000075") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 75);
+
+    TestItem* l = (TestItem*)(root->item.left);
+    RTT_ASSERT(l != NULL);
+    RTT_ASSERT(l->item.parent == (CdsMapItem*)root);
+    key = (char*)(l->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(l->item.factor == -1);
+    RTT_ASSERT(l->value == 50);
+
+    TestItem* ll = (TestItem*)(l->item.left);
+    RTT_ASSERT(ll != NULL);
+    RTT_ASSERT(ll->item.parent == (CdsMapItem*)l);
+    key = (char*)(ll->item.key);
+    RTT_ASSERT(strcmp(key, "00000025") == 0);
+    RTT_ASSERT(ll->item.factor == 0);
+    RTT_ASSERT(ll->value == 25);
+
+    TestItem* lll = (TestItem*)(ll->item.left);
+    RTT_ASSERT(lll != NULL);
+    RTT_ASSERT(lll->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(lll->item.left == NULL);
+    RTT_ASSERT(lll->item.right == NULL);
+    key = (char*)(lll->item.key);
+    RTT_ASSERT(strcmp(key, "00000012") == 0);
+    RTT_ASSERT(lll->item.factor == 0);
+    RTT_ASSERT(lll->value == 12);
+
+    TestItem* llr = (TestItem*)(ll->item.right);
+    RTT_ASSERT(llr != NULL);
+    RTT_ASSERT(llr->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(llr->item.left == NULL);
+    RTT_ASSERT(llr->item.right == NULL);
+    key = (char*)(llr->item.key);
+    RTT_ASSERT(strcmp(key, "00000033") == 0);
+    RTT_ASSERT(llr->item.factor == 0);
+    RTT_ASSERT(llr->value == 33);
+
+    TestItem* lr = (TestItem*)(l->item.right);
+    RTT_ASSERT(lr != NULL);
+    RTT_ASSERT(lr->item.parent == (CdsMapItem*)l);
+    RTT_ASSERT(lr->item.left == NULL);
+    RTT_ASSERT(lr->item.right == NULL);
+    key = (char*)(lr->item.key);
+    RTT_ASSERT(strcmp(key, "00000070") == 0);
+    RTT_ASSERT(lr->item.factor == 0);
+    RTT_ASSERT(lr->value = 70);
+
+    TestItem* r = (TestItem*)(root->item.right);
+    RTT_ASSERT(r != NULL);
+    RTT_ASSERT(r->item.parent == (CdsMapItem*)root);
+    key = (char*)(r->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(r->item.factor == 0);
+    RTT_ASSERT(r->value == 100);
+
+    TestItem* rl = (TestItem*)(r->item.left);
+    RTT_ASSERT(rl != NULL);
+    RTT_ASSERT(rl->item.parent = (CdsMapItem*)r);
+    RTT_ASSERT(rl->item.right == NULL);
+    key = (char*)(rl->item.key);
+    RTT_ASSERT(strcmp(key, "00000082") == 0);
+    RTT_ASSERT(rl->item.factor == -1);
+    RTT_ASSERT(rl->value == 82);
+
+    TestItem* rll = (TestItem*)(rl->item.left);
+    RTT_ASSERT(rll != NULL);
+    RTT_ASSERT(rll->item.parent == (CdsMapItem*)rl);
+    RTT_ASSERT(rll->item.left == NULL);
+    RTT_ASSERT(rll->item.right == NULL);
+    key = (char*)(rll->item.key);
+    RTT_ASSERT(strcmp(key, "00000080") == 0);
+    RTT_ASSERT(rll->item.factor == 0);
+    RTT_ASSERT(rll->value == 80);
+
+    TestItem* rr = (TestItem*)(r->item.right);
+    RTT_ASSERT(rr != NULL);
+    RTT_ASSERT(rr->item.parent == (CdsMapItem*)r);
+    key = (char*)(rr->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(rr->item.factor == 0);
+    RTT_ASSERT(rr->value == 150);
+
+    TestItem* rrr = (TestItem*)(rr->item.right);
+    RTT_ASSERT(rrr != NULL);
+    RTT_ASSERT(rrr->item.parent == (CdsMapItem*)rr);
+    RTT_ASSERT(rrr->item.left == NULL);
+    RTT_ASSERT(rrr->item.right == NULL);
+    key = (char*)(rrr->item.key);
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(rrr->item.factor == 0);
+    RTT_ASSERT(rrr->value == 200);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_prepare_deep_map_for_insertion_with_RL_rotation)
+{
+    RTT_ASSERT(CdsMapRemove(gMap, "00000012"));
+    RTT_ASSERT(CdsMapRemove(gMap, "00000033"));
+
+    TestItem* item = testItemAlloc(90);
+    char* key = testKeyCreate(90);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+/* Tree at this stage
+
+              75
+         50           100
+     25    70     82        150
+                80  90   125   200
+*/
+RTT_TEST_START(cds_should_perform_RL_rotation_when_inserting_into_deep_map)
+{
+    TestItem* item = testItemAlloc(78);
+    char* key = testKeyCreate(78);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+/* Tree at this stage
+
+                82
+          75        100
+      50      80  90      150
+    25  70  78         125   200
+*/
+RTT_TEST_START(cds_check_deep_map_after_insertion_with_RL_rotation)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000082") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 82);
+
+    TestItem* l = (TestItem*)(root->item.left);
+    RTT_ASSERT(l != NULL);
+    RTT_ASSERT(l->item.parent == (CdsMapItem*)root);
+    key = (char*)(l->item.key);
+    RTT_ASSERT(strcmp(key, "00000075") == 0);
+    RTT_ASSERT(l->item.factor == 0);
+    RTT_ASSERT(l->value == 75);
+
+    TestItem* ll = (TestItem*)(l->item.left);
+    RTT_ASSERT(ll != NULL);
+    RTT_ASSERT(ll->item.parent == (CdsMapItem*)l);
+    key = (char*)(ll->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(ll->item.factor == 0);
+    RTT_ASSERT(ll->value == 50);
+
+    TestItem* lll = (TestItem*)(ll->item.left);
+    RTT_ASSERT(lll != NULL);
+    RTT_ASSERT(lll->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(lll->item.left == NULL);
+    RTT_ASSERT(lll->item.right == NULL);
+    key = (char*)(lll->item.key);
+    RTT_ASSERT(strcmp(key, "00000025") == 0);
+    RTT_ASSERT(lll->item.factor == 0);
+    RTT_ASSERT(lll->value == 25);
+
+    TestItem* llr = (TestItem*)(ll->item.right);
+    RTT_ASSERT(llr != NULL);
+    RTT_ASSERT(llr->item.parent == (CdsMapItem*)ll);
+    RTT_ASSERT(llr->item.left == NULL);
+    RTT_ASSERT(llr->item.right == NULL);
+    key = (char*)(llr->item.key);
+    RTT_ASSERT(strcmp(key, "00000070") == 0);
+    RTT_ASSERT(llr->item.factor == 0);
+    RTT_ASSERT(llr->value == 70);
+
+    TestItem* lr = (TestItem*)(l->item.right);
+    RTT_ASSERT(lr != NULL);
+    RTT_ASSERT(lr->item.parent == (CdsMapItem*)l);
+    RTT_ASSERT(lr->item.right == NULL);
+    key = (char*)(lr->item.key);
+    RTT_ASSERT(strcmp(key, "00000080") == 0);
+    RTT_ASSERT(lr->item.factor == -1);
+    RTT_ASSERT(lr->value = 80);
+
+    TestItem* lrl = (TestItem*)(lr->item.left);
+    RTT_ASSERT(lrl != NULL);
+    RTT_ASSERT(lrl->item.parent == (CdsMapItem*)lr);
+    RTT_ASSERT(lrl->item.left == NULL);
+    RTT_ASSERT(lrl->item.right == NULL);
+    key = (char*)(lrl->item.key);
+    RTT_ASSERT(strcmp(key, "00000078") == 0);
+    RTT_ASSERT(lrl->item.factor == 0);
+    RTT_ASSERT(lrl->value == 78);
+
+    TestItem* r = (TestItem*)(root->item.right);
+    RTT_ASSERT(r != NULL);
+    RTT_ASSERT(r->item.parent == (CdsMapItem*)root);
+    key = (char*)(r->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(r->item.factor == 1);
+    RTT_ASSERT(r->value == 100);
+
+    TestItem* rl = (TestItem*)(r->item.left);
+    RTT_ASSERT(rl != NULL);
+    RTT_ASSERT(rl->item.parent = (CdsMapItem*)r);
+    RTT_ASSERT(rl->item.left == NULL);
+    RTT_ASSERT(rl->item.right == NULL);
+    key = (char*)(rl->item.key);
+    RTT_ASSERT(strcmp(key, "00000090") == 0);
+    RTT_ASSERT(rl->item.factor == 0);
+    RTT_ASSERT(rl->value == 90);
+
+    TestItem* rr = (TestItem*)(r->item.right);
+    RTT_ASSERT(rr != NULL);
+    RTT_ASSERT(rr->item.parent == (CdsMapItem*)r);
+    key = (char*)(rr->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(rr->item.factor == 0);
+    RTT_ASSERT(rr->value == 150);
+
+    TestItem* rrl = (TestItem*)(rr->item.left);
+    RTT_ASSERT(rrl != NULL);
+    RTT_ASSERT(rrl->item.parent == (CdsMapItem*)rr);
+    RTT_ASSERT(rrl->item.left == NULL);
+    RTT_ASSERT(rrl->item.right == NULL);
+    key = (char*)(rrl->item.key);
+    RTT_ASSERT(strcmp(key, "00000125") == 0);
+    RTT_ASSERT(rrl->item.factor == 0);
+    RTT_ASSERT(rrl->value == 125);
+
+    TestItem* rrr = (TestItem*)(rr->item.right);
+    RTT_ASSERT(rrr != NULL);
+    RTT_ASSERT(rrr->item.parent == (CdsMapItem*)rr);
+    RTT_ASSERT(rrr->item.left == NULL);
+    RTT_ASSERT(rrr->item.right == NULL);
+    key = (char*)(rrr->item.key);
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(rrr->item.factor == 0);
+    RTT_ASSERT(rrr->value == 200);
+}
+RTT_TEST_END
+
 RTT_TEST_START(cds_should_destroy_deep_map)
 {
     CdsMapDestroy(gMap);
@@ -1361,4 +1767,13 @@ RTT_GROUP_END(TestCdsDeepMap,
         cds_check_deep_map_inital_build,
         cds_should_perform_LL_rotation_when_inserting_into_deep_map,
         cds_check_deep_map_after_insertion_with_LL_rotation,
+        cds_prepare_deep_map_for_insertion_with_RR_rotation,
+        cds_should_perform_RR_rotation_when_inserting_into_deep_map,
+        cds_check_deep_map_after_insertion_with_RR_rotation,
+        cds_prepare_deep_map_for_insertion_with_LR_rotation,
+        cds_should_perform_LR_rotation_when_inserting_into_deep_map,
+        cds_check_deep_map_after_insertion_with_LR_rotation,
+        cds_prepare_deep_map_for_insertion_with_RL_rotation,
+        cds_should_perform_RL_rotation_when_inserting_into_deep_map,
+        cds_check_deep_map_after_insertion_with_RL_rotation,
         cds_should_destroy_deep_map);
