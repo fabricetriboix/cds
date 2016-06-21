@@ -464,10 +464,6 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item)
 
     // Retrace the tree
     //
-    // A deletion always changes the balance factor of `item->parent`, so we
-    // need to update the balance factors of all ancestors and perform rotations
-    // as necessary.
-    //
     // This is done by going up the tree, starting from `item->parent`, and
     // finishing when the current node's factor does not change, or if we reach
     // the root of the tree. Please remember we just removed `item` from the
