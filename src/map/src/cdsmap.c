@@ -402,43 +402,64 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item)
         // Exchange `item` and `tmp`
         // NB: This temporarily breaks the binary search tree, until we actually
         // delete `item`
-        CdsMapItem* parent = tmp->parent;
-        CDSASSERT(parent != NULL);
-        CdsMapItem* left = tmp->left;
-        CdsMapItem* right = tmp->right;
-        if (cdsMapIsLeftChild(tmp)) {
-            parent->left = item;
-        } else {
-            CDSASSERT(cdsMapIsRightChild(tmp));
-            parent->right = item;
-        }
-        if (cdsMapIsLeftChild(item)) {
-            item->parent->left = tmp;
-        } else if (cdsMapIsRightChild(item)) {
-            item->parent->right = tmp;
-        } else {
-            CDSASSERT(item->parent == NULL);
-            map->root = tmp;
-        }
-        tmp->parent = item->parent;
-        if (item->left != NULL) {
-            item->left->parent = tmp;
-        }
-        tmp->left = item->left;
-        if (item->right != NULL) {
-            item->right->parent = tmp;
-        }
-        tmp->right = item->right;
+
+        CdsMapItem* itemParent = item->parent;
+        bool itemIsLeftChild = cdsMapIsLeftChild(item);
+        CdsMapItem* itemLeft = item->left;
+        CDSASSERT(itemLeft != NULL);
+        CdsMapItem* itemRight = item->right;
+        CDSASSERT(itemRight != NULL);
+
+        CdsMapItem* tmpParent = tmp->parent;
+        CDSASSERT(tmpParent != NULL);
+        bool tmpIsLeftChild = cdsMapIsLeftChild(tmp);
+        CdsMapItem* tmpLeft = tmp->left;
+        CdsMapItem* tmpRight = tmp->right;
+
         tmp->factor = item->factor;
-        item->parent = parent;
-        if (left != NULL) {
-            left->parent = item;
+        tmp->parent = itemParent;
+        if (itemParent == NULL) {
+            map->root = tmp;
+        } else if (itemIsLeftChild) {
+            itemParent->left = tmp;
+        } else {
+            itemParent->right = tmp;
         }
-        item->left = left;
-        if (right != NULL) {
-            right->parent = item;
+        if (tmp != itemLeft) {
+            tmp->left = itemLeft;
+            if (itemLeft != NULL) {
+                itemLeft->parent = tmp;
+            }
+        } else {
+            tmp->left = item;
         }
-        item->right = right;
+        if (tmp != itemRight) {
+            tmp->right = itemRight;
+            if (itemRight != NULL) {
+                itemRight->parent = tmp;
+            }
+        } else {
+            tmp->right = item;
+        }
+
+        if (item != tmpParent) {
+            item->parent = tmpParent;
+            if (tmpIsLeftChild) {
+                tmpParent->left = item;
+            } else {
+                tmpParent->right = item;
+            }
+        } else {
+            item->parent = tmp;
+        }
+        item->left = tmpLeft;
+        if (tmpLeft != NULL) {
+            tmpLeft->parent = item;
+        }
+        item->right = tmpRight;
+        if (tmpRight != NULL) {
+            tmpRight->parent = item;
+        }
     }
 
     // Here, `item` is a leaf or has only one child; remove `item` from the tree
