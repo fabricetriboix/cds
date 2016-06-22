@@ -555,7 +555,6 @@ CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending)
     if (map->root == NULL) {
         iterator->current = NULL;
     } else {
-        map->root->flags = 0;
         if (ascending) {
             iterator->current = cdsMapDigLeft(map->root);
         } else {
@@ -622,6 +621,7 @@ static CdsMapItem* cdsMapDigLeft(CdsMapItem* item)
 {
     CDSASSERT(item != NULL);
 
+    item->flags = 0;
     while ((item->left != NULL) && !(item->flags & CDSMAP_FLAG_LEFT)) {
         item->flags |= CDSMAP_FLAG_LEFT;
         item = item->left;
@@ -635,7 +635,8 @@ static CdsMapItem* cdsMapDigRight(CdsMapItem* item)
 {
     CDSASSERT(item != NULL);
 
-    while ((item->right != NULL) && (item->flags & CDSMAP_FLAG_RIGHT)) {
+    item->flags = 0;
+    while ((item->right != NULL) && !(item->flags & CDSMAP_FLAG_RIGHT)) {
         item->flags |= CDSMAP_FLAG_RIGHT;
         item = item->right;
         item->flags = 0;
