@@ -31,7 +31,7 @@
 
 struct CdsMap
 {
-    CdsMapItem*     root;
+    CdsMapItem*     root; // Keep this at the top, it's necessary for unit tests
     char*           name;
     int64_t         capacity;
     int64_t         size;
