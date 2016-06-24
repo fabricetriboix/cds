@@ -10,7 +10,7 @@ rttestmainobj = ""
 testsrcs = []
 
 subdirs = [os.path.join("plf", variant['target']),
-           "list", "binarytree"]
+           "list", "binarytree", "map"]
 
 for subdir in subdirs:
     artefacts = SConscript(os.path.join(subdir, "SConscript"),

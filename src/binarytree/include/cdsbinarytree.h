@@ -14,19 +14,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/** Plain binary tree
+/** Binary tree
  *
- * \defgroup cdsbinarytree Plain binary tree
+ * \defgroup cdsbinarytree Binary tree
  * \addtogroup cdsbinarytree
  * @{
  *
- * Plain binary tree.
+ * Binary tree.
  */
 
 #ifndef CDSBINARYTREE_h_
 #define CDSBINARYTREE_h_
 
 #include "cdscommon.h"
+#include "cdsbinarytree_private.h"
 
 
 
@@ -51,17 +52,10 @@ typedef struct CdsBinaryTree CdsBinaryTree;
  *         char* z;
  *     } MyItem;
  */
-typedef struct CdsBinaryTreeNode
-{
-    CdsBinaryTree*            tree;
-    struct CdsBinaryTreeNode* parent;
-    struct CdsBinaryTreeNode* left;
-    struct CdsBinaryTreeNode* right;
-    uint8_t                   flags;
-} CdsBinaryTreeNode;
+typedef struct CdsBinaryTreeNode CdsBinaryTreeNode;
 
 
-/** Prototype of a function to remove a reference to an item
+/** Prototype of a function to remove a reference to a node
  *
  * This function should decrement the internal reference counter of the node by
  * one. If the internal reference counter reaches zero, the node should be
@@ -114,11 +108,13 @@ void CdsBinaryTreeDestroy(CdsBinaryTree* tree);
 /** Get the tree's name
  *
  * \param tree [in] Binary tree to query; must not be NULL
+ *
+ * \return The tree's name, which may be NULL
  */
 const char* CdsBinaryTreeName(const CdsBinaryTree* tree);
 
 
-/** Get the maxmim number of nodes this binary tree can hold
+/** Get the maximum number of nodes this binary tree can hold
  *
  * \param tree [in] Binary tree to query; must not be NULL
  *

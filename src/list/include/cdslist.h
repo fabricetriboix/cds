@@ -29,6 +29,7 @@
 #define CDSLIST_h_
 
 #include "cdscommon.h"
+#include "cdslist_private.h"
 
 
 
@@ -53,12 +54,7 @@ typedef struct CdsList CdsList;
  *         char* z;
  *     } MyItem;
  */
-typedef struct CdsListItem
-{
-    CdsList*            list;
-    struct CdsListItem* next;
-    struct CdsListItem* prev;
-} CdsListItem;
+typedef struct CdsListItem CdsListItem;
 
 
 /** Prototype of a function to remove a reference to an item
@@ -115,6 +111,8 @@ void CdsListDestroy(CdsList* list);
 /** Get the list's name
  *
  * \param list [in] The list to query; must not be NULL
+ *
+ * \return The list's name, which may be NULL
  */
 const char* CdsListName(const CdsList* list);
 
