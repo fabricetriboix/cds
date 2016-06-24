@@ -2,47 +2,42 @@ import sys
 import os
 import autodetectplf
 
+autoplf = autodetectplf.autodetectplf()
+
 
 # Command-line options
 
-AddOption("--target", dest='target', default="",
-        help="Compilation target; eg: x64-linux, arm-linux (default: same as host)")
-
-AddOption("--host", dest='host', default="",
-        help="Compilation host; eg: x64-linux (default: auto-detect)")
-
-AddOption("--prefix", dest='prefix', default="",
-        help="Installation directory (default: under build directory)")
+AddOption("--target", dest='target', default=autoplf,
+        help="Compilation target; eg: x64-linux, arm-linux "
+                "(auto-detected default: " + autoplf + ")")
 
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
 
-AddOption("--rtsys-path", dest='rtsys_path', default="/usr/local/rtsys",
+AddOption("--rtsys", dest='rtsys_path', default="/usr/local/rtsys",
         help="Where rtsys is installed")
 
 AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
         help="Do not use ccache")
+
+AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
+        help="Also build the documentation for all variants")
 
 rtsysPath = os.path.abspath(GetOption('rtsys_path'))
 
 
 # Manage cross-compilation
 
-hostplf = GetOption('host')
-if not hostplf:
-    hostplf = autodetectplf.autodetectplf()
-    print("--host not set, using auto-detected host: " + hostplf)
-
 tgtplf = GetOption('target')
 if not tgtplf:
-    tgtplf = hostplf
-    print("--target not set, using same as host: " + tgtplf)
+    tgtplf = autoplf
+    print("--target not set, using auto-detected: " + tgtplf)
 
-tmp = os.path.join("src", "plf", tgtplf)
-if not os.access(tmp, os.R_OK):
-    print("ERROR: target platform not found: " + tmp)
+path = os.path.join("src", "plf", tgtplf)
+if not os.path.isdir(path) or not os.access(path, os.R_OK):
+    print("ERROR: target platform not found: " + path)
 
-sys.path.append(tmp)
+sys.path.append(path)
 import plfsettings
 
 
@@ -65,34 +60,24 @@ if GetOption('use_ccache'):
 # Variants (NB: the first variant is the one built by default)
 
 variantNames = ['release', 'debug']
-settings = plfsettings.getPlfSettings(variantNames)
+settings = plfsettings.GetPlfSettings(variantNames)
 variants = {}
-prefix = GetOption('prefix')
 
 for v in variantNames:
     variants[v] = {}
-    variants[v]['host'] = hostplf
     variants[v]['target'] = tgtplf
+    variants[v]['topdir'] = os.getcwd()
 
-    tmp = os.path.abspath(os.path.join("build", tgtplf, v))
-    variants[v]['build_root'] = tmp
-
-    if prefix == "":
-        tmp = os.path.join(tmp, "install")
-    else:
-        tmp = prefix
-    variants[v]['install_root'] = tmp
-    variants[v]['install_inc'] = os.path.join(tmp, "include")
-    variants[v]['install_lib'] = os.path.join(tmp, "lib")
-    variants[v]['install_bin'] = os.path.join(tmp, "bin")
-    variants[v]['install_doc'] = os.path.join(tmp, "doc")
+    path = os.path.abspath(os.path.join("build", tgtplf, v))
+    variants[v]['build_root'] = path
+    variants[v]['build_inc'] = os.path.join(path, "include")
+    variants[v]['build_doc'] = os.path.join(path, "doc")
 
     variants[v]['env'] = env.Clone()
     variants[v]['env']['CC'] = settings[v]['cc']
     variants[v]['env']['AR'] = settings[v]['ar']
     variants[v]['env']['RANLIB'] = settings[v]['ranlib']
     variants[v]['env'].AppendENVPath('PATH', settings[v]['path'])
-    variants[v]['env'].AppendENVPath('PATH', os.path.join(rtsysPath, "bin"))
     variants[v]['env'].Append(CPPDEFINES = settings[v]['cppdefines'])
     variants[v]['env'].Append(CCFLAGS = settings[v]['ccflags'])
     variants[v]['env'].Append(CPPPATH = settings[v]['cpppath'])
@@ -101,6 +86,7 @@ for v in variantNames:
     variants[v]['env'].Append(LIBPATH = [variants[v]['build_root']])
 
     # Add paths for rtsys
+    variants[v]['env'].AppendENVPath('PATH', os.path.join(rtsysPath, "bin"))
     variants[v]['env'].Append(CPPPATH = os.path.join(rtsysPath, "include"))
     variants[v]['env'].Append(LIBPATH = os.path.join(rtsysPath, "lib"))
 
@@ -108,8 +94,10 @@ for v in variantNames:
     if not GetOption('clean') and not GetOption('help'):
         conf = Configure(variants[v]['env'])
 
+        hasDoxy = False
+        hasDot = False
         if not conf.CheckProg("doxygen"):
-            print("doxygen not found; doxygen documentation will not be generted")
+            print("doxygen not found; doxygen documentation will not be generated")
         else:
             hasDoxy = True
             if not conf.CheckProg("dot"):
@@ -118,11 +106,11 @@ for v in variantNames:
                 hasDot = True
 
         if GetOption('use_ccache') and not conf.CheckProg("ccache"):
-            print("ccache not found")
+            print("ERROR ccache not found")
             Exit(1)
 
         if not conf.CheckCC():
-            print("C compiler not found: " + variants[v]['env']['CC'])
+            print("ERROR C compiler not found: " + variants[v]['env']['CC'])
             Exit(1)
 
         variants[v]['env'] = conf.Finish()
