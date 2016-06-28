@@ -1,0 +1,7 @@
+Import('variant')
+
+obj = variant['env'].StaticObject("cdslistperf.c")
+variant['env'].Program("cdslistperf", [obj], LIBS=['cds'])
+
+obj = variant['env'].StaticObject("stllistperf.cpp")
+variant['env'].Program("stllistperf", [obj])
