@@ -75,5 +75,10 @@ int main(int argc, char** argv)
         list.pop_back();
     }
 
+    if (list.size() != 0) {
+        fprintf(stderr, "ERROR: List size should be 0 after removing all items "
+                "(currently it is %lld)\n", (long long)list.size());
+        exit(1);
+    }
     return 0;
 }

@@ -65,12 +65,12 @@ int main(int argc, char** argv)
 
     printf("Inserting %lld items at the front\n", count / 2);
     for (long long i = 0; i < (count / 2); i++) {
-        CdsListPushFront(list, (CdsListItem*)myItemCreate(i));
+        CDSASSERT(CdsListPushFront(list, (CdsListItem*)myItemCreate(i)));
     }
 
     printf("Inserting %lld items at the back\n", count / 2);
     for (long long i = (count / 2); i < count; i++) {
-        CdsListPushBack(list, (CdsListItem*)myItemCreate(i));
+        CDSASSERT(CdsListPushBack(list, (CdsListItem*)myItemCreate(i)));
     }
 
     printf("Walking through the list\n");
@@ -82,15 +82,18 @@ int main(int argc, char** argv)
     printf("Popping %lld items from the front\n", count / 2);
     for (long long i = 0; i < (count / 2); i++) {
         MyItem* item = (MyItem*)CdsListPopFront(list);
+        CDSASSERT(item != NULL);
         myItemUnref((CdsListItem*)item);
     }
 
     printf("Popping %lld items from the back\n", count / 2);
     for (long long i = (count / 2); i < count; i++) {
         MyItem* item = (MyItem*)CdsListPopFront(list);
+        CDSASSERT(item != NULL);
         myItemUnref((CdsListItem*)item);
     }
 
+    CDSASSERT(CdsListSize(list) == 0);
     CdsListDestroy(list);
     return 0;
 }
