@@ -1,0 +1,9 @@
+Import('variant')
+
+import os
+
+subdirs = ['list', 'map']
+
+for subdir in subdirs:
+    SConscript(os.path.join(subdir, "SConscript"),
+            exports={'variant': variant})
