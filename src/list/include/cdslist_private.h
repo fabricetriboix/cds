@@ -25,7 +25,7 @@
 
 
 /* Forward declaration */
-struct CdsList CdsList;
+struct CdsList;
 
 
 /* List item */

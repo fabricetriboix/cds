@@ -31,7 +31,7 @@ for subdir in subdirs:
             for src in value:
                 testsrcs.append(os.path.join(subdir, src))
 
-lib = variant['env'].StaticLibrary('cds', objs)
+variant['env'].StaticLibrary('cds', objs)
 
 # NB: We have to do a bit of gymnastics to get scons to install files
 # or directories that are not the results of some build process. This
@@ -61,3 +61,7 @@ if len(testsrcs) > 0:
     testobjs.append(rttestmainobj)
     variant['env'].Program("cds_unit_tests", testobjs,
             LIBS=['cds', 'rttest', 'rtsys'])
+
+# Build cds vs stl programs
+SConscript(os.path.join("cds_vs_stl", "SConscript"),
+        exports={'variant': variant})

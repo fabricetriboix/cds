@@ -43,3 +43,14 @@ The text of the GPLv3 is available in the [LICENSE](LICENSE) file.
 A commercial license can be provided if you do not wish to be bound by
 the terms of the GPLv3, or for other reasons. Please contact me for more
 details.
+
+
+Coverity status
+---------------
+
+![Coverity scan build status](https://scan.coverity.com/projects/9308/badge.svg)
+
+This project is regularily scanned through Coverity.
+[Click here](https://scan.coverity.com/projects/fabricetriboix-cds)
+for its status.
+

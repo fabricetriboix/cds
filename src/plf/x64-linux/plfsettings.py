@@ -6,13 +6,14 @@ def GetPlfSettings(variantNames):
         settings[v] = {}
         settings[v]['path'] = ['/usr/local/bin', '/bin', '/usr/bin']
         settings[v]['cc'] = 'gcc'
+        settings[v]['cxx'] = 'g++'
         settings[v]['ar'] = 'ar'
         settings[v]['ranlib'] = 'ranlib'
         settings[v]['cpppath'] = []
         settings[v]['cppdefines'] = [{'_GNU_SOURCE': '1'}]
-        settings[v]['ccflags'] = ['-Wall', '-Wextra', '-Werror',
-                '-std=c99', '-pthread']
-        settings[v]['linkflags'] = ['-pthread']
+        settings[v]['ccflags'] = ['-Wall', '-Wextra', '-Werror', '-std=c99']
+        settings[v]['cxxflags'] = ['-Wall', '-Wextra', '-Werror', '-std=c++11']
+        settings[v]['linkflags'] = []
         settings[v]['libpath'] = []
 
         # Default installation directories
@@ -28,7 +29,9 @@ def GetPlfSettings(variantNames):
         # Customisation per variant
         if v == "debug":
             settings[v]['ccflags'].extend(['-O0', '-g'])
+            settings[v]['cxxflags'].extend(['-O0', '-g'])
         elif v == "release":
             settings[v]['ccflags'].extend(['-O3'])
+            settings[v]['cxxflags'].extend(['-O3'])
 
     return settings

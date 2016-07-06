@@ -1,0 +1,10 @@
+Import('variant')
+
+obj = variant['env'].StaticObject("mkrnd.cpp")
+variant['env'].Program("mkrnd", [obj])
+
+obj = variant['env'].StaticObject("cdsmapperf.c")
+variant['env'].Program("cdsmapperf", [obj], LIBS=['cds'])
+
+obj = variant['env'].StaticObject("stlmapperf.cpp")
+variant['env'].Program("stlmapperf", [obj])

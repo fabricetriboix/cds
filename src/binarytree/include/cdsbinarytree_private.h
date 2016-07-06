@@ -36,7 +36,7 @@ struct CdsBinaryTreeNode
     struct CdsBinaryTreeNode* left;
     struct CdsBinaryTreeNode* right;
     uint8_t                   flags;
-} CdsBinaryTreeNode;
+};
 
 
 
