@@ -14,7 +14,7 @@ AddOption("--target", dest='target', default=autoplf,
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
 
-AddOption("--rtsys", dest='rtsys_path', default="/usr/local/rtsys",
+AddOption("--rtsys", dest='rtsys', default="",
         help="Where rtsys is installed")
 
 AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
@@ -23,7 +23,9 @@ AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
 AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
         help="Also build the documentation for all variants")
 
-rtsysPath = os.path.abspath(GetOption('rtsys_path'))
+rtsysPath = ""
+if GetOption("rtsys"):
+    rtsysPath = os.path.abspath(GetOption('rtsys'))
 
 
 # Manage cross-compilation
@@ -45,6 +47,11 @@ import plfsettings
 
 env = Environment(AR="dummy", CC="dummy", CXX="dummy", ENV={},
         HAS_DOXYGEN="no", HAS_DOT="no")
+
+# Propagate certain environment variables
+for i in ['C_INCLUDE_PATH', 'CPLUS_INCLUDE_PATH', 'LIBRARY_PATH']:
+    if os.environ.has_key(i):
+        env['ENV'][i] = os.environ[i]
 
 # Re-write c++ command line without C flags
 # NB: original is "$CXX -o $TARGET -c $CXXFLAGS $CCFLAGS $_CCCOMCOM $SOURCES"
@@ -93,9 +100,10 @@ for v in variantNames:
     variants[v]['env'].Append(LIBPATH = [variants[v]['build_root']])
 
     # Add paths for rtsys
-    variants[v]['env'].AppendENVPath('PATH', os.path.join(rtsysPath, "bin"))
-    variants[v]['env'].Append(CPPPATH = os.path.join(rtsysPath, "include"))
-    variants[v]['env'].Append(LIBPATH = os.path.join(rtsysPath, "lib"))
+    if rtsysPath:
+        variants[v]['env'].AppendENVPath('PATH', os.path.join(rtsysPath, "bin"))
+        variants[v]['env'].Append(CPPPATH = os.path.join(rtsysPath, "include"))
+        variants[v]['env'].Append(LIBPATH = os.path.join(rtsysPath, "lib"))
 
     # Autoconf-like stuff
     if not GetOption('clean') and not GetOption('help'):
