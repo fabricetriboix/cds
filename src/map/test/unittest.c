@@ -313,7 +313,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_4th_item)
     key = (char*)(left->item.key);
     RTT_ASSERT(strcmp(key, "00000050") == 0);
     RTT_ASSERT(left->item.factor == 0);
-    RTT_ASSERT(left->value = 50);
+    RTT_ASSERT(left->value == 50);
 }
 RTT_TEST_END
 
@@ -377,7 +377,7 @@ RTT_TEST_START(cds_check_map_shape_after_inserting_5th_item)
     key = (char*)(left->item.key);
     RTT_ASSERT(strcmp(key, "00000025") == 0);
     RTT_ASSERT(left->item.factor == 0);
-    RTT_ASSERT(left->value = 25);
+    RTT_ASSERT(left->value == 25);
 
     TestItem* right = (TestItem*)(subroot->item.right);
     RTT_ASSERT(right != NULL);
@@ -987,7 +987,7 @@ RTT_TEST_START(cds_check_map_shape_after_removing_item_with_RL_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000125") == 0);
     RTT_ASSERT(lr->item.factor == 0);
-    RTT_ASSERT(lr->value = 125);
+    RTT_ASSERT(lr->value == 125);
 
     TestItem* r = (TestItem*)(root->item.right);
     RTT_ASSERT(r != NULL);
@@ -1288,7 +1288,7 @@ RTT_TEST_START(cds_check_deep_map_after_insertion_with_LL_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000033") == 0);
     RTT_ASSERT(lr->item.factor == 0);
-    RTT_ASSERT(lr->value = 33);
+    RTT_ASSERT(lr->value == 33);
 
     TestItem* r = (TestItem*)(root->item.right);
     RTT_ASSERT(r != NULL);
@@ -1421,7 +1421,7 @@ RTT_TEST_START(cds_check_deep_map_after_insertion_with_RR_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000075") == 0);
     RTT_ASSERT(lr->item.factor == 1);
-    RTT_ASSERT(lr->value = 75);
+    RTT_ASSERT(lr->value == 75);
 
     TestItem* lrr = (TestItem*)(lr->item.right);
     RTT_ASSERT(lrr != NULL);
@@ -1558,7 +1558,7 @@ RTT_TEST_START(cds_check_deep_map_after_insertion_with_LR_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000070") == 0);
     RTT_ASSERT(lr->item.factor == 0);
-    RTT_ASSERT(lr->value = 70);
+    RTT_ASSERT(lr->value == 70);
 
     TestItem* r = (TestItem*)(root->item.right);
     RTT_ASSERT(r != NULL);
@@ -1693,7 +1693,7 @@ RTT_TEST_START(cds_check_deep_map_after_insertion_with_RL_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000080") == 0);
     RTT_ASSERT(lr->item.factor == -1);
-    RTT_ASSERT(lr->value = 80);
+    RTT_ASSERT(lr->value == 80);
 
     TestItem* lrl = (TestItem*)(lr->item.left);
     RTT_ASSERT(lrl != NULL);
@@ -1968,7 +1968,7 @@ RTT_TEST_START(cds_check_deep_map_after_leaf_removal_with_RR_rotation)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000090") == 0);
     RTT_ASSERT(lr->item.factor == 1);
-    RTT_ASSERT(lr->value = 90);
+    RTT_ASSERT(lr->value == 90);
 
     TestItem* lrr = (TestItem*)(lr->item.right);
     RTT_ASSERT(lrr != NULL);
