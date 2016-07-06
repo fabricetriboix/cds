@@ -408,8 +408,8 @@ RTT_TEST_START(cds_binary_tree_traverse_pre_order)
     CdsBinaryTreeTraversePreOrder(root, testNodeActionPreOrder, &d);
 
     RTT_ASSERT(d.ok);
-    RTT_ASSERT(d.nextLevel = MAGIC_LEVEL_DONE);
-    RTT_ASSERT(d.nextRank = MAGIC_RANK_DONE);
+    RTT_ASSERT(d.nextLevel == MAGIC_LEVEL_DONE);
+    RTT_ASSERT(d.nextRank == MAGIC_RANK_DONE);
 
 }
 RTT_TEST_END
@@ -427,8 +427,8 @@ RTT_TEST_START(cds_binary_tree_traverse_in_order)
     CdsBinaryTreeTraverseInOrder(root, testNodeActionInOrder, &d);
 
     RTT_ASSERT(d.ok);
-    RTT_ASSERT(d.nextLevel = MAGIC_LEVEL_DONE);
-    RTT_ASSERT(d.nextRank = MAGIC_RANK_DONE);
+    RTT_ASSERT(d.nextLevel == MAGIC_LEVEL_DONE);
+    RTT_ASSERT(d.nextRank == MAGIC_RANK_DONE);
 
 }
 RTT_TEST_END

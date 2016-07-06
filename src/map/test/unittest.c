@@ -1188,7 +1188,7 @@ RTT_TEST_START(cds_check_deep_map_inital_build)
     key = (char*)(lr->item.key);
     RTT_ASSERT(strcmp(key, "00000075") == 0);
     RTT_ASSERT(lr->item.factor == 1);
-    RTT_ASSERT(lr->value = 75);
+    RTT_ASSERT(lr->value == 75);
 
     TestItem* lrr = (TestItem*)(lr->item.right);
     RTT_ASSERT(lrr != NULL);
