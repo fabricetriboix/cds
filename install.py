@@ -60,9 +60,8 @@ argsParser.add_argument("--vardir", default="",
         help="Where dynamic data files live; "
             "can be absolute of relative (from `prefix`)")
 
-argsParser.add_argument("-i", "--ignore", default=False,
-        action='store_true', help="Ignore errors when installing files and "
-            "directories")
+argsParser.add_argument("-s", "--strict", default=False, action='store_true',
+        help="Fail if an error is encountered when installing files or directories")
 
 args = argsParser.parse_args()
 
@@ -102,37 +101,41 @@ if args.prefix:
 if not os.path.isabs(settings['prefix']):
     print("ERROR: `prefix` must be an absolute path: " + settings['prefix'])
     sys.exit(1)
-bindir = EstablishInstallPath(settings, 'bindir', args.bindir)
-libdir = EstablishInstallPath(settings, 'libdir', args.libdir)
-incdir = EstablishInstallPath(settings, 'incdir', args.incdir)
-docdir = EstablishInstallPath(settings, 'docdir', args.docdir)
-etcdir = EstablishInstallPath(settings, 'etcdir', args.etcdir)
-shrdir = EstablishInstallPath(settings, 'shrdir', args.datadir)
-vardir = EstablishInstallPath(settings, 'vardir', args.vardir)
+installDirs = {}
+installDirs['bin'] = EstablishInstallPath(settings, 'bindir', args.bindir)
+installDirs['lib'] = EstablishInstallPath(settings, 'libdir', args.libdir)
+installDirs['inc'] = EstablishInstallPath(settings, 'incdir', args.incdir)
+installDirs['doc'] = EstablishInstallPath(settings, 'docdir', args.docdir)
+installDirs['etc'] = EstablishInstallPath(settings, 'etcdir', args.etcdir)
+installDirs['shr'] = EstablishInstallPath(settings, 'shrdir', args.datadir)
+installDirs['var'] = EstablishInstallPath(settings, 'vardir', args.vardir)
+targets = ['bin', 'lib', 'inc', 'doc', 'etc', 'shr', 'var']
 
 
 ### START CONFIG ###
 
+installables = {}
+
 # Executables to install
-installExecutables = []
+installables['bin'] = []
 
 # Libraries to install
-installLibs = [os.path.join(builddir, "libcds.a")]
+installables['lib'] = [os.path.join(builddir, "libcds.a")]
 
 # Include files to install
-installIncs = glob.glob(os.path.join(builddir, "include", "*.h"))
+installables['inc'] = glob.glob(os.path.join(builddir, "include", "*.h"))
 
 # Documentation to install
-installDoc = [os.path.join(builddir, "doc", "html")]
+installables['doc'] = [os.path.join(builddir, "doc", "html")]
 
 # Configuration files to install
-installConfig = []
+installables['etc'] = []
 
 # Static data files to install
-installData = []
+installables['shr'] = []
 
 # Dynamic data files to install
-installVar = []
+installables['var'] = []
 
 ### END CONFIG ###
 
@@ -162,63 +165,35 @@ def Install(installdir, path):
     if os.path.isfile(path):
         dst = os.path.join(installdir, basename)
         if os.path.exists(dst):
-            if args.ignore:
-                print("WARNING: File to install already exists: " + dst)
-            else:
+            if args.strict:
                 print("ERROR: File to install already exists: " + dst)
                 sys.exit(1)
         print("Installing file '{}' to {}".format(path, installdir))
         shutil.copy(path, installdir)
 
     elif os.path.isdir(path):
-        print("Installing directory '{}' to {}".format(path, installdir))
-        try:
-            shutil.copytree(path, os.path.join(installdir, basename))
-        except Exception, e:
-            dst = os.path.join(installdir, basename)
-            if args.ignore:
-                print("WARNING: Failed to install directory {}: {}".format(
-                        dst, e))
-            else:
-                print("ERROR: Failed to install directory {}: {}".format(
-                        dst, e))
+        dst = os.path.join(installdir, basename)
+        if os.path.exists(dst):
+            if args.strict:
+                print("ERROR: Directory to install already exists: " + dst)
                 sys.exit(1)
+            else:
+                shutil.rmtree(dst)
+        print("Installing directory '{}' to {}".format(path, installdir))
+        shutil.copytree(path, os.path.join(installdir, basename))
 
     else:
-        print("ERROR: Thingy to install is neither a file nor a directory: "
-                + path)
+        print("ERROR: Thingy to install is neither a file nor a directory: " + path)
         sys.exit(1)
 
 # Only show install directories if requested
 if args.show:
     print("Target: " + tgtplf)
     print("prefix: " + settings['prefix'])
-    print("bindir: " + bindir)
-    print("libdir: " + libdir)
-    print("incdir: " + incdir)
-    print("docdir: " + docdir)
-    print("etcdir: " + etcdir + " (configuration)")
-    print("shrdir: " + shrdir + " (static data files)")
-    print("vardir: " + vardir + " (dynamic data files)")
+    for target in targets:
+        print(target + "dir: " + installDirs[target])
     sys.exit(0)
 
-for i in installExecutables:
-    Install(bindir, i)
-
-for i in installLibs:
-    Install(libdir, i)
-
-for i in installIncs:
-    Install(incdir, i)
-
-for i in installDoc:
-    Install(docdir, i)
-
-for i in installConfig:
-    Install(etcdir, i)
-
-for i in installData:
-    Install(shrdir, i)
-
-for i in installVar:
-    Install(vardir, i)
+for target in targets:
+    for i in installables[target]:
+        Install(installDirs[target], i)
