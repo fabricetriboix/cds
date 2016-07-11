@@ -4,7 +4,8 @@ import os
 
 artefacts = {}
 
-artefacts['incs'] = [os.path.join("include", "cdsmap.h")]
+artefacts['incs'] = [os.path.join("include", "cdsmap.h"),
+                     os.path.join("include", "cdsmap_private.h")]
 srcs = [os.path.join("src", "cdsmap.c")]
 artefacts['objs'] = [variant['env'].StaticObject(src) for src in srcs]
 artefacts['testsrcs'] = [os.path.join("test", "unittest.c")]

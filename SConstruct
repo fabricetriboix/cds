@@ -24,7 +24,7 @@ AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
         help="Also build the documentation for all variants")
 
 rtsysPath = ""
-if GetOption("rtsys"):
+if GetOption('rtsys'):
     rtsysPath = os.path.abspath(GetOption('rtsys'))
 
 
