@@ -202,6 +202,15 @@ CdsMap* CdsMapCreate(const char* name, int64_t capacity, CdsMapCompare compare,
 void CdsMapDestroy(CdsMap* map)
 {
     CDSASSERT(map != NULL);
+    CdsMapClear(map);
+    free(map->name);
+    free(map);
+}
+
+
+void CdsMapClear(CdsMap* map)
+{
+    CDSASSERT(map != NULL);
 
     if (map->root != NULL) {
         // Traverse the tree in post-order fashion
@@ -231,8 +240,8 @@ void CdsMapDestroy(CdsMap* map)
         }
     }
 
-    free(map->name);
-    free(map);
+    map->root = NULL;
+    map->size = 0;
 }
 
 

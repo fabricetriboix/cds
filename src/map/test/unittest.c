@@ -1009,6 +1009,14 @@ RTT_TEST_START(cds_check_map_shape_after_removing_item_with_RL_rotation)
 }
 RTT_TEST_END
 
+RTT_TEST_START(cds_should_clear_map)
+{
+    CdsMapClear(gMap);
+    RTT_ASSERT(gNumberOfItemsInExistence == 0);
+    RTT_ASSERT(gNumberOfKeysInExistence == 0);
+}
+RTT_TEST_END
+
 RTT_TEST_START(cds_should_destroy_map)
 {
     CdsMapDestroy(gMap);
@@ -1069,6 +1077,7 @@ RTT_GROUP_END(TestCdsMap,
         cds_reshape_map_before_removal_with_RL_rotation,
         cds_map_should_remove_item_with_RL_rotation,
         cds_check_map_shape_after_removing_item_with_RL_rotation,
+        cds_should_clear_map,
         cds_should_destroy_map);
 
 

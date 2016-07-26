@@ -122,6 +122,15 @@ CdsMap* CdsMapCreate(const char* name, int64_t capacity,
 void CdsMapDestroy(CdsMap* map);
 
 
+/** Clear a map
+ *
+ * This will remove all items in the map.
+ *
+ * \param map [in,out] Map to clear; must not be NULL
+ */
+void CdsMapClear(CdsMap* map);
+
+
 /** Get the map's name
  *
  * \param map [in] Map to query; must not be NULL
