@@ -90,6 +90,8 @@ static int testKeyCompare(void* leftKey, void* rightKey, void* cookie)
 
 CdsMap* gMap = NULL;
 
+CdsMapIterator* gIterator = NULL;
+
 
 RTT_GROUP_START(TestCdsMap, 0x00050001u, NULL, NULL)
 
@@ -2796,5 +2798,46 @@ RTT_GROUP_END(TestCdsDeepMap,
         cds_should_perform_RR_rotation_when_removing_top_item,
         cds_check_deep_map_after_top_removal_with_RR_rotation,
         cds_should_destroy_deep_map);
+
+
+RTT_GROUP_START(TestIterateEmptyMap, 0x00050003u, NULL, NULL)
+
+RTT_TEST_START(cds_should_create_empty_map)
+{
+    gMap = CdsMapCreate("MyMap", 9, testKeyCompare, NULL,
+            testKeyUnref, testItemUnref);
+    RTT_ASSERT(gMap != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_create_iterator)
+{
+    gIterator = CdsMapIteratorCreate(gMap, true);
+    RTT_ASSERT(gIterator != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_next_item_should_be_null)
+{
+    CdsMapItem* item = CdsMapIteratorNext(gIterator);
+    RTT_EXPECT(NULL == item);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_free_iterator_and_map)
+{
+    CdsMapIteratorDestroy(gIterator);
+    gIterator = NULL;
+    CdsMapDestroy(gMap);
+    gMap = NULL;
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestIterateEmptyMap,
+        cds_should_create_empty_map,
+        cds_should_create_iterator,
+        cds_next_item_should_be_null,
+        cds_free_iterator_and_map)
+
 
 // TODO: top and deep removal with rotation
