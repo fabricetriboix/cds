@@ -122,6 +122,15 @@ CdsMap* CdsMapCreate(const char* name, int64_t capacity,
 void CdsMapDestroy(CdsMap* map);
 
 
+/** Clear a map
+ *
+ * This will remove all items in the map.
+ *
+ * \param map [in,out] Map to clear; must not be NULL
+ */
+void CdsMapClear(CdsMap* map);
+
+
 /** Get the map's name
  *
  * \param map [in] Map to query; must not be NULL
@@ -236,7 +245,11 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item);
  * You must call `CdsMapIteratorDestroy()` on the created iterator once you
  * finished with it.
  *
- * Only one iterator can be active at any time on a given map.
+ * Only one iterator can be active at any time on a given map. Items will be
+ * iterated in an in-order manner, either in ascending or descending order,
+ * depending on the value of the `ascending` argument.
+ *
+ * You must not insert or remove items while iterating through the map.
  *
  * \param map       [in] Map to iterate through; must not be NULL
  * \param ascending [in] Whether to iterate in ascending or descending order
@@ -253,10 +266,12 @@ CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending);
  * the first call to this function will return the item with the smallest key.
  *
  * \param iterator [in,out] Iterator to use; must not be NULL
+ * \param pKey     [out]    Key for the corresponding item; set to NULL if you
+ *                          don't need the key
  *
  * \return Next item, or NULL if the end is reached
  */
-CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator);
+CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator, void** pKey);
 
 
 /** Destroy an iterator

@@ -81,10 +81,11 @@ if not os.path.isdir(path) or not os.access(path, os.R_OK):
 sys.path.append(path)
 import plfsettings
 
-allsettings = plfsettings.GetPlfSettings(['release'])
-settings = allsettings['release']
+variant = "release"
+allsettings = plfsettings.GetPlfSettings([variant])
+settings = allsettings[variant]
 
-builddir = os.path.join("build", tgtplf, "release")
+builddir = os.path.join("build", tgtplf, variant)
 
 def EstablishInstallPath(settings, d, arg):
     prefix = settings['prefix']
