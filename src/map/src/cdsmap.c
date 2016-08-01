@@ -27,6 +27,7 @@
 
 #define CDSMAP_FLAG_LEFT  0x01
 #define CDSMAP_FLAG_RIGHT 0x02
+#define CDSMAP_FLAG_SELF  0x04
 
 
 struct CdsMap
@@ -47,6 +48,7 @@ struct CdsMapIterator
 {
     CdsMap*     map;
     bool        ascending;
+    bool        finished;
     CdsMapItem* current;
 };
 
@@ -575,60 +577,71 @@ CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending)
 {
     CDSASSERT(map != NULL);
     CDSASSERT(!(map->hasIterator));
-
     CdsMapIterator* iterator = CdsMallocZ(sizeof(*iterator));
-
-    map->hasIterator = true;
     iterator->map = map;
     iterator->ascending = ascending;
-
-    if (map->root == NULL) {
-        iterator->current = NULL;
-    } else {
-        if (ascending) {
-            iterator->current = cdsMapDigLeft(map->root);
-        } else {
-            iterator->current = cdsMapDigRight(map->root);
-        }
+    map->hasIterator = true;
+    if (map->root != NULL) {
+        map->root->flags = 0;
     }
     return iterator;
 }
 
 
-CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator)
+CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator, void** pKey)
 {
     CDSASSERT(iterator != NULL);
+    CDSASSERT(iterator->map != NULL);
 
     CdsMapItem* curr = iterator->current;
-    CdsMapItem* next = NULL;
-    if (curr != NULL) {
-        if (iterator->ascending) {
-            // NB: We have already visited all the nodes on the left side of
-            // `curr`
-            CdsMapItem* parent = curr->parent;
-            if (parent == NULL) {
-                next = NULL; // `curr` was actually the root node
-            } else if (parent->right == NULL) {
-                next = parent;
+    if (NULL == curr) {
+        // Current item is NULL, could be because we just started or because we
+        // just finished
+        if (!(iterator->finished) && (iterator->map->root != NULL)) {
+            if (iterator->ascending) {
+                iterator->current = cdsMapDigLeft(iterator->map->root);
             } else {
-                next = cdsMapDigLeft(parent->right);
-            }
-
-        } else {
-            // NB: We have already visited all the nodes on the right side of
-            // `curr`
-            CdsMapItem* parent = curr->parent;
-            if (parent == NULL) {
-                next = NULL; // `curr` was actually the root node
-            } else if (parent->left == NULL) {
-                next = parent;
-            } else {
-                next = cdsMapDigRight(parent->left);
+                iterator->current = cdsMapDigRight(iterator->map->root);
             }
         }
-        iterator->current = next;
+    } else {
+        if (iterator->ascending) {
+            // NB: We already visited the sub-tree left of `curr` and `curr`
+            // itself
+            //  => Visit the sub-tree right of `curr`, or if done already, the
+            //     first non-visited ancestor
+            if (!(curr->flags & CDSMAP_FLAG_RIGHT) && (curr->right != NULL)) {
+                curr->flags |= CDSMAP_FLAG_RIGHT;
+                iterator->current = cdsMapDigLeft(curr->right);
+            } else {
+                while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+                    curr = curr->parent;
+                }
+                iterator->current = curr;
+            }
+        } else {
+            // NB: We already visited the sub-tree right of `curr` and `curr`
+            // itself
+            //  => Visit the sub-tree left of `curr`, or if done already, the
+            //     first non-visited ancestor
+            if (!(curr->flags & CDSMAP_FLAG_LEFT) && (curr->left != NULL)) {
+                curr->flags |= CDSMAP_FLAG_LEFT;
+                iterator->current = cdsMapDigRight(curr->left);
+            } else {
+                while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+                    curr = curr->parent;
+                }
+                iterator->current = curr;
+            }
+        }
     }
-    return curr;
+    if (iterator->current != NULL) {
+        iterator->current->flags |= CDSMAP_FLAG_SELF;
+        if (pKey != NULL) {
+            *pKey = iterator->current->key;
+        }
+    }
+    return iterator->current;
 }
 
 
