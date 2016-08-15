@@ -28,6 +28,7 @@ def GetPlfSettings(variantNames):
 
         # Customisation per variant
         if v == "debug":
+            settings[v]['cppdefines'].append({'CDS_ENABLE_MTRACE': '1'})
             settings[v]['ccflags'].extend(['-O0', '-g'])
             settings[v]['cxxflags'].extend(['-O0', '-g'])
         elif v == "release":

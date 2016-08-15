@@ -29,6 +29,10 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifdef CDS_ENABLE_MTRACE
+#include <mcheck.h>
+#endif
+
 
 
 /*----------------+

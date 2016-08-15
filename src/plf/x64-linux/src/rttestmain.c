@@ -19,6 +19,10 @@
 #include <stdio.h>
 #include <unistd.h>
 
+#ifdef CDS_ENABLE_MTRACE
+#include <mcheck.h>
+#endif
+
 
 static RTBool writeOctet(uint8_t octet)
 {
@@ -31,6 +35,10 @@ int main(int argc, char** argv)
 {
     uint32_t* groups = NULL;
     uint16_t ngroups = 0;
+
+#ifdef CDS_ENABLE_MTRACE
+    mtrace();
+#endif
 
     if (argc > 1) {
         ngroups = (uint16_t)(argc - 1);
@@ -45,6 +53,10 @@ int main(int argc, char** argv)
     }
     int32_t ret = RTTestRun(writeOctet, groups, ngroups);
     free(groups);
+
+#ifdef CDS_ENABLE_MTRACE
+    muntrace();
+#endif
 
     if (ret < 0) {
         ret = 1;
