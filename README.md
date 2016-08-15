@@ -17,6 +17,9 @@ This project has been created for two reasons:
 Getting started
 ---------------
 
+First install [rtsys](https://github.com/fabricetriboix/rtsys.git). Then
+follow the steps:
+
     $ scons --help
     $ scons --mkdoc -j4    # Build
     $ ./run_unit_tests.py  # Run the unit tests
