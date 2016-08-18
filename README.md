@@ -17,7 +17,7 @@ This project has been created for two reasons:
 Getting started
 ---------------
 
-First install [rtsys](https://github.com/fabricetriboix/rtsys.git). Then
+First install [rtsys](https://github.com/fabricetriboix/rtsys). Then
 follow the steps:
 
     $ scons --help
