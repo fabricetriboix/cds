@@ -16,8 +16,8 @@
 
 /** Map (aka associatve array)
  *
- * \defgroup cdsmap Map (aka associatve array)
- * \addtogroup cdsmap
+ * @defgroup cdsmap Map (aka associatve array)
+ * @addtogroup cdsmap
  * @{
  *
  * Map.
@@ -79,11 +79,11 @@ typedef void (*CdsMapItemUnref)(CdsMapItem* item);
 
 /** Prototype of a function to compare two keys
  *
- * \param leftKey  [in] Left-hand side of the comparison
- * \param rightKey [in] Right-hand side of the comparison
- * \param cookie   [in] Cookie for this function
+ * @param leftKey  [in] Left-hand side of the comparison
+ * @param rightKey [in] Right-hand side of the comparison
+ * @param cookie   [in] Cookie for this function
  *
- * \return -1 if `leftKey` < `rightKey`, 0 if `leftKey` == `rightKey`
+ * @return -1 if `leftKey` < `rightKey`, 0 if `leftKey` == `rightKey`
  *         or 1 if `leftKey` > `rightKey`
  */
 typedef int (*CdsMapCompare)(void* leftKey, void* rightKey, void* cookie);
@@ -97,16 +97,16 @@ typedef int (*CdsMapCompare)(void* leftKey, void* rightKey, void* cookie);
 
 /** Create a map
  *
- * \param name      [in] Name for this map; may be NULL
- * \param capacity  [in] Max # of items the map can store; 0 = no limit
- * \param compare   [in] Function to compare two keys; must not be NULL
- * \param cookie    [in] Cookie for the previous function
- * \param keyUnref  [in] Function to remove a reference to a key; may be NULL
+ * @param name      [in] Name for this map; may be NULL
+ * @param capacity  [in] Max # of items the map can store; 0 = no limit
+ * @param compare   [in] Function to compare two keys; must not be NULL
+ * @param cookie    [in] Cookie for the previous function
+ * @param keyUnref  [in] Function to remove a reference to a key; may be NULL
  *                       if you don't need it
- * \param itemUnref [in] Function to remove a reference to a item; may be NULL
+ * @param itemUnref [in] Function to remove a reference to a item; may be NULL
  *                       if you don't need it
  *
- * \return The newly-allocated map, never NULL
+ * @return The newly-allocated map, never NULL
  */
 CdsMap* CdsMapCreate(const char* name, int64_t capacity,
         CdsMapCompare compare, void* cookie,
@@ -117,7 +117,7 @@ CdsMap* CdsMapCreate(const char* name, int64_t capacity,
  *
  * Any key and item remaining in the map will be unreferenced.
  *
- * \param map [in,out] Map to destroy; must not be NULL
+ * @param map [in,out] Map to destroy; must not be NULL
  */
 void CdsMapDestroy(CdsMap* map);
 
@@ -126,43 +126,43 @@ void CdsMapDestroy(CdsMap* map);
  *
  * This will remove all items in the map.
  *
- * \param map [in,out] Map to clear; must not be NULL
+ * @param map [in,out] Map to clear; must not be NULL
  */
 void CdsMapClear(CdsMap* map);
 
 
 /** Get the map's name
  *
- * \param map [in] Map to query; must not be NULL
+ * @param map [in] Map to query; must not be NULL
  *
- * \return The map's name, which may be NULL
+ * @return The map's name, which may be NULL
  */
 const char* CdsMapName(const CdsMap* map);
 
 
 /** Get the maximum number of items this map can hold
  *
- * \param map [in] Map to query; must not be NULL
+ * @param map [in] Map to query; must not be NULL
  *
- * \return The `map` capacity, or 0 if no limit
+ * @return The `map` capacity, or 0 if no limit
  */
 int64_t CdsMapCapacity(const CdsMap* map);
 
 
 /** Get the number of items currently in the map
  *
- * \param map [in] Map to query; must not be NULL
+ * @param map [in] Map to query; must not be NULL
  *
- * \return The number of items currently in the `map`
+ * @return The number of items currently in the `map`
  */
 int64_t CdsMapSize(const CdsMap* map);
 
 
 /** Test if the map is empty
  *
- * \param map [in] Map to query; must not be NULL
+ * @param map [in] Map to query; must not be NULL
  *
- * \return `true` if the map is empty, `false` otherwise
+ * @return `true` if the map is empty, `false` otherwise
  */
 bool CdsMapIsEmpty(const CdsMap* map);
 
@@ -172,9 +172,9 @@ bool CdsMapIsEmpty(const CdsMap* map);
  * If the `map` capacity has been set to 0 at creation, this function always
  * returns `false`.
  *
- * \param map [in] Map to query; must not be NULL
+ * @param map [in] Map to query; must not be NULL
  *
- * \return `true` if the map is full, `false` otherwise
+ * @return `true` if the map is full, `false` otherwise
  */
 bool CdsMapIsFull(const CdsMap* map);
 
@@ -197,11 +197,11 @@ bool CdsMapIsFull(const CdsMap* map);
  * `keyUnref` function to NULL when creating the map, or add a reference to the
  * key prior to calling this function.
  *
- * \param map  [in,out] Map to manipulate; must not be NULL
- * \param key  [in]     Item key
- * \param item [in]     Item to insert into `map`; must not be NULL
+ * @param map  [in,out] Map to manipulate; must not be NULL
+ * @param key  [in]     Item key
+ * @param item [in]     Item to insert into `map`; must not be NULL
  *
- * \return `true` if OK, `false` if map is full
+ * @return `true` if OK, `false` if map is full
  */
 bool CdsMapInsert(CdsMap* map, void* key, CdsMapItem* item);
 
@@ -211,10 +211,10 @@ bool CdsMapInsert(CdsMap* map, void* key, CdsMapItem* item);
  * The ownership of `key` remains with the caller. The ownership of the returned
  * item remains with the `map`.
  *
- * \param map [in] Map to search; must not be NULL
- * \param key [in] Key to search for
+ * @param map [in] Map to search; must not be NULL
+ * @param key [in] Key to search for
  *
- * \return The found item, to NULL if not found
+ * @return The found item, to NULL if not found
  */
 CdsMapItem* CdsMapSearch(CdsMap* map, void* key);
 
@@ -224,18 +224,18 @@ CdsMapItem* CdsMapSearch(CdsMap* map, void* key);
  * If found, both the item and its key will be unreferenced (but not the `key`
  * argument, whose ownership remains with the caller).
  *
- * \param map [in,out] Map to manipulate; must not be NULL
- * \param key [in]     Key to search for
+ * @param map [in,out] Map to manipulate; must not be NULL
+ * @param key [in]     Key to search for
  *
- * \return `true` if item found and removed, `false` if item not found
+ * @return `true` if item found and removed, `false` if item not found
  */
 bool CdsMapRemove(CdsMap* map, void* key);
 
 
 /** Remove an item directly
  *
- * \param map  [in,out] Map to manipulate; must not be NULL
- * \param item [in,out] Item to remove; must not be NULL
+ * @param map  [in,out] Map to manipulate; must not be NULL
+ * @param item [in,out] Item to remove; must not be NULL
  */
 void CdsMapItemRemove(CdsMap* map, CdsMapItem* item);
 
@@ -251,10 +251,10 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item);
  *
  * You must not insert or remove items while iterating through the map.
  *
- * \param map       [in] Map to iterate through; must not be NULL
- * \param ascending [in] Whether to iterate in ascending or descending order
+ * @param map       [in] Map to iterate through; must not be NULL
+ * @param ascending [in] Whether to iterate in ascending or descending order
  *
- * \return An iterator object, never NULL
+ * @return An iterator object, never NULL
  */
 CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending);
 
@@ -265,18 +265,18 @@ CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending);
  * will be returned. For example, for a `CDSMAP_ITERATOR_ASCENDING` iterator,
  * the first call to this function will return the item with the smallest key.
  *
- * \param iterator [in,out] Iterator to use; must not be NULL
- * \param pKey     [out]    Key for the corresponding item; set to NULL if you
+ * @param iterator [in,out] Iterator to use; must not be NULL
+ * @param pKey     [out]    Key for the corresponding item; set to NULL if you
  *                          don't need the key
  *
- * \return Next item, or NULL if the end is reached
+ * @return Next item, or NULL if the end is reached
  */
 CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator, void** pKey);
 
 
 /** Destroy an iterator
  *
- * \param iterator [in,out] Iterator to destroy; must not be NULL
+ * @param iterator [in,out] Iterator to destroy; must not be NULL
  */
 void CdsMapIteratorDestroy(CdsMapIterator* iterator);
 

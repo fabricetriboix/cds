@@ -16,8 +16,8 @@
 
 /** Binary tree
  *
- * \defgroup cdsbinarytree Binary tree
- * \addtogroup cdsbinarytree
+ * @defgroup cdsbinarytree Binary tree
+ * @addtogroup cdsbinarytree
  * @{
  *
  * Binary tree.
@@ -69,10 +69,10 @@ typedef void (*CdsBinaryTreeNodeUnref)(CdsBinaryTreeNode* node);
  * You may modify the tree in this function, provided that it is on nodes that
  * have already been traversed, or this node.
  *
- * \param node   [in,out] Node to take action on
- * \param cookie [in]     Cookie for this function
+ * @param node   [in,out] Node to take action on
+ * @param cookie [in]     Cookie for this function
  *
- * \return `true` to continue traversing the tree, `false` to stop traversing
+ * @return `true` to continue traversing the tree, `false` to stop traversing
  */
 typedef bool (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
 
@@ -85,12 +85,12 @@ typedef bool (*CdsBinaryTreeNodeAction)(CdsBinaryTreeNode* node, void* cookie);
 
 /** Create a binary tree
  *
- * \param name     [in] Name for this binary tree; may be NULL
- * \param capacity [in] Max # of nodes the tree can store; 0 = no limit
- * \param unref    [in] Function to remove a reference to a node; may be NULL if
+ * @param name     [in] Name for this binary tree; may be NULL
+ * @param capacity [in] Max # of nodes the tree can store; 0 = no limit
+ * @param unref    [in] Function to remove a reference to a node; may be NULL if
  *                      you don't need it
  *
- * \return The newly-allocated binary tree, never NULL
+ * @return The newly-allocated binary tree, never NULL
  */
 CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
         CdsBinaryTreeNodeUnref unref);
@@ -100,43 +100,43 @@ CdsBinaryTree* CdsBinaryTreeCreate(const char* name, int64_t capacity,
  *
  * Any item in the binary tree will be unreferenced.
  *
- * \param tree [in,out] Binary tree to destroy; must not be NULL
+ * @param tree [in,out] Binary tree to destroy; must not be NULL
  */
 void CdsBinaryTreeDestroy(CdsBinaryTree* tree);
 
 
 /** Get the tree's name
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return The tree's name, which may be NULL
+ * @return The tree's name, which may be NULL
  */
 const char* CdsBinaryTreeName(const CdsBinaryTree* tree);
 
 
 /** Get the maximum number of nodes this binary tree can hold
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return The `tree` capacity, or 0 if no limit
+ * @return The `tree` capacity, or 0 if no limit
  */
 int64_t CdsBinaryTreeCapacity(const CdsBinaryTree* tree);
 
 
 /** Get the number of nodes currently in the binary tree
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return The number of nodes currently in the `tree`
+ * @return The number of nodes currently in the `tree`
  */
 int64_t CdsBinaryTreeSize(const CdsBinaryTree* tree);
 
 
 /** Test if the binary tree is empty
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return `true` if the binary tree is empty, `false` otherwise
+ * @return `true` if the binary tree is empty, `false` otherwise
  */
 bool CdsBinaryTreeIsEmpty(const CdsBinaryTree* tree);
 
@@ -146,9 +146,9 @@ bool CdsBinaryTreeIsEmpty(const CdsBinaryTree* tree);
  * If the `tree` capacity has been set to 0 at creation, this function always
  * returns `false`.
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return `true` if the binary tree is full, `false` otherwise
+ * @return `true` if the binary tree is full, `false` otherwise
  */
 bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree);
 
@@ -161,10 +161,10 @@ bool CdsBinaryTreeIsFull(const CdsBinaryTree* tree);
  * to do more work on the `root` node, you should take a reference from it
  * prior to calling this function.
  *
- * \param tree [in,out] Binary tree to manipulate; must not be NULL
- * \param root [in,out] Node to set as the root of the `tree`; must not be NULL
+ * @param tree [in,out] Binary tree to manipulate; must not be NULL
+ * @param root [in,out] Node to set as the root of the `tree`; must not be NULL
  *
- * \return `true` if OK, `false` if `tree` is not empty
+ * @return `true` if OK, `false` if `tree` is not empty
  */
 bool CdsBinaryTreeSetRoot(CdsBinaryTree* tree, CdsBinaryTreeNode* root);
 
@@ -178,10 +178,10 @@ bool CdsBinaryTreeSetRoot(CdsBinaryTree* tree, CdsBinaryTreeNode* root);
  * to do more work on the `child` node, you should take a reference from it
  * prior to calling this function.
  *
- * \param parent [in,out] Parent node; must not be NULL
- * \param child  [in,out] Child node to insert under `parent`; must not be NULL
+ * @param parent [in,out] Parent node; must not be NULL
+ * @param child  [in,out] Child node to insert under `parent`; must not be NULL
  *
- * \return `true` if OK, `false` if the `parent` already has a left child or if
+ * @return `true` if OK, `false` if the `parent` already has a left child or if
  *         the tree is full
  */
 bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
@@ -197,10 +197,10 @@ bool CdsBinaryTreeInsertLeft(CdsBinaryTreeNode* parent,
  * to do more work on the `child` node, you should take a reference from it
  * prior to calling this function.
  *
- * \param parent [in,out] Parent node; must not be NULL
- * \param child  [in,out] Child node to insert under `parent`; must not be NULL
+ * @param parent [in,out] Parent node; must not be NULL
+ * @param child  [in,out] Child node to insert under `parent`; must not be NULL
  *
- * \return `true` if OK, `false` if the `parent` already has a right child or if
+ * @return `true` if OK, `false` if the `parent` already has a right child or if
  *         the tree is full
  */
 bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
@@ -211,43 +211,43 @@ bool CdsBinaryTreeInsertRight(CdsBinaryTreeNode* parent,
  *
  * All nodes in the sub-tree under (and including) `node` will be de-referenced.
  *
- * \param node [in,out] Node to remove; must not be NULL
+ * @param node [in,out] Node to remove; must not be NULL
  */
 void CdsBinaryTreeRemoveNode(CdsBinaryTreeNode* node);
 
 
 /** Get the root of a binary tree
  *
- * \param tree [in] Binary tree to query; must not be NULL
+ * @param tree [in] Binary tree to query; must not be NULL
  *
- * \return The root node of the binary tree, or NULL if `tree` is empty
+ * @return The root node of the binary tree, or NULL if `tree` is empty
  */
 CdsBinaryTreeNode* CdsBinaryTreeRoot(const CdsBinaryTree* tree);
 
 
 /** Get the left child of a node
  *
- * \param node [in] Node to query; must not be NULL
+ * @param node [in] Node to query; must not be NULL
  *
- * \return Child node on left of `node`, or NULL if `node` has no left child
+ * @return Child node on left of `node`, or NULL if `node` has no left child
  */
 CdsBinaryTreeNode* CdsBinaryTreeLeftNode(const CdsBinaryTreeNode* node);
 
 
 /** Get the right child of a node
  *
- * \param node [in] Node to query; must not be NULL
+ * @param node [in] Node to query; must not be NULL
  *
- * \return Child node on right of `node`, or NULL if `node` has no right child
+ * @return Child node on right of `node`, or NULL if `node` has no right child
  */
 CdsBinaryTreeNode* CdsBinaryTreeRightNode(const CdsBinaryTreeNode* node);
 
 
 /** Get the parent of a node
  *
- * \param node [in] Node to query; must not be NULL
+ * @param node [in] Node to query; must not be NULL
  *
- * \return Parent node `node`, or NULL if `node` has no parent (i.e. it is the root node)
+ * @return Parent node `node`, or NULL if `node` has no parent (i.e. it is the root node)
  */
 CdsBinaryTreeNode* CdsBinaryTreeParentNode(const CdsBinaryTreeNode* node);
 
@@ -256,9 +256,9 @@ CdsBinaryTreeNode* CdsBinaryTreeParentNode(const CdsBinaryTreeNode* node);
  *
  * A node is a leaf if it has no children.
  *
- * \param node [in] Node to test; must not be NULL
+ * @param node [in] Node to test; must not be NULL
  *
- * \return `true` if `node` is a leaf, `false` otherwise
+ * @return `true` if `node` is a leaf, `false` otherwise
  */
 bool CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node);
 
@@ -275,16 +275,16 @@ bool CdsBinaryTreeIsLeaf(const CdsBinaryTreeNode* node);
  * capacities. If either `left` or `right` has unlimited capacity, the merged
  * tree will also have unlimited capacity.
  *
- * \param name  [in]     A name for the merged tree; may be NULL
- * \param root  [in,out] Node to use as the root of the new binary tree; must
+ * @param name  [in]     A name for the merged tree; may be NULL
+ * @param root  [in,out] Node to use as the root of the new binary tree; must
  *                       not be NULL
- * \param left  [in,out] Binary tree to set left of `root`; must not be NULL;
+ * @param left  [in,out] Binary tree to set left of `root`; must not be NULL;
  *                       the `left` binary tree will be destroyed in the process
- * \param right [in,out] Binary tree to set right of `root`; must not be NULL;
+ * @param right [in,out] Binary tree to set right of `root`; must not be NULL;
  *                       the `right` binary tree will be destroyed in the
  *                       process
  *
- * \return A new binary tree, which is a merge of the two; this function never
+ * @return A new binary tree, which is a merge of the two; this function never
  *         returns NULL
  */
 CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
@@ -298,9 +298,9 @@ CdsBinaryTree* CdsBinaryTreeMerge(const char* name, CdsBinaryTreeNode* root,
  *
  * The `action` function will be called on each traversed node.
  *
- * \param node   [in] Top node of sub-tree to traverse; must not be NULL
- * \param action [in] Action to apply to nodes; must not be NULL
- * \param cookie [in] Cookie for the previous action function
+ * @param node   [in] Top node of sub-tree to traverse; must not be NULL
+ * @param action [in] Action to apply to nodes; must not be NULL
+ * @param cookie [in] Cookie for the previous action function
  */
 void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
         CdsBinaryTreeNodeAction action, void* cookie);
@@ -313,9 +313,9 @@ void CdsBinaryTreeTraversePreOrder(CdsBinaryTreeNode* node,
  *
  * The `action` function will be called on each traversed node.
  *
- * \param node   [in] Top node of sub-tree to traverse; must not be NULL
- * \param action [in] Action to apply to nodes; must not be NULL
- * \param cookie [in] Cookie for the previous action function
+ * @param node   [in] Top node of sub-tree to traverse; must not be NULL
+ * @param action [in] Action to apply to nodes; must not be NULL
+ * @param cookie [in] Cookie for the previous action function
  */
 void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
         CdsBinaryTreeNodeAction action, void* cookie);
@@ -328,9 +328,9 @@ void CdsBinaryTreeTraverseInOrder(CdsBinaryTreeNode* node,
  *
  * The `action` function will be called on each traversed node.
  *
- * \param node   [in] Top node of sub-tree to traverse; must not be NULL
- * \param action [in] Action to apply to nodes; must not be NULL
- * \param cookie [in] Cookie for the previous action function
+ * @param node   [in] Top node of sub-tree to traverse; must not be NULL
+ * @param action [in] Action to apply to nodes; must not be NULL
+ * @param cookie [in] Cookie for the previous action function
  */
 void CdsBinaryTreeTraversePostOrder(CdsBinaryTreeNode* node,
         CdsBinaryTreeNodeAction action, void* cookie);

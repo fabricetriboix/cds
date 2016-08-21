@@ -61,9 +61,9 @@ struct CdsMapIterator
 
 /** Check if the given item is the left child of its parent
  *
- * \param item [in] Item to test; must not be NULL
+ * @param item [in] Item to test; must not be NULL
  *
- * \return `true` if item is the left child of its parent; `false` if it is the
+ * @return `true` if item is the left child of its parent; `false` if it is the
  *         right child or has no parent
  */
 static inline bool cdsMapIsLeftChild(const CdsMapItem* item)
@@ -75,9 +75,9 @@ static inline bool cdsMapIsLeftChild(const CdsMapItem* item)
 
 /** Check if the given item is the right child of its parent
  *
- * \param item [in] Item to test; must not be NULL
+ * @param item [in] Item to test; must not be NULL
  *
- * \return `true` if item is the right child of its parent; `false` if it is the
+ * @return `true` if item is the right child of its parent; `false` if it is the
  *         left child or has no parent
  */
 static bool cdsMapIsRightChild(const CdsMapItem* item)
@@ -89,9 +89,9 @@ static bool cdsMapIsRightChild(const CdsMapItem* item)
 
 /** Check if the given item is a leaf
  *
- * \param item [in] Item to test; must not be NULL
+ * @param item [in] Item to test; must not be NULL
  *
- * \return `true` if `item` is a leaf, `false` if it has at least one child
+ * @return `true` if `item` is a leaf, `false` if it has at least one child
  */
 static bool cdsMapIsLeaf(const CdsMapItem* item)
 {
@@ -102,58 +102,58 @@ static bool cdsMapIsLeaf(const CdsMapItem* item)
 
 /** Go down a sub-tree as far as possible on the left
  *
- * \param item [in] The sub-tree root, must not be NULL
+ * @param item [in] The sub-tree root, must not be NULL
  *
- * \return The left-most item in the sub-tree, never NULL
+ * @return The left-most item in the sub-tree, never NULL
  */
 static CdsMapItem* cdsMapDigLeft(CdsMapItem* item);
 
 
 /** Go down a sub-tree as far as possible on the right
  *
- * \param item [in] The sub-tree root, must not be NULL
+ * @param item [in] The sub-tree root, must not be NULL
  *
- * \return The right-most item in the sub-tree, never NULL
+ * @return The right-most item in the sub-tree, never NULL
  */
 static CdsMapItem* cdsMapDigRight(CdsMapItem* item);
 
 
 /** Perform a single RR rotation of the sub-tree rooted at `subroot`
  *
- * \param map     [in,out] Map to manipulate; must not be NULL
- * \param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
+ * @param map     [in,out] Map to manipulate; must not be NULL
+ * @param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
  *
- * \return The root of the rotated sub-tree
+ * @return The root of the rotated sub-tree
  */
 static CdsMapItem* cdsMapRotateRightRight(CdsMap* map, CdsMapItem* subroot);
 
 
 /** Perform a single LL rotation of the sub-tree rooted at `subroot`
  *
- * \param map     [in,out] Map to manipulate; must not be NULL
- * \param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
+ * @param map     [in,out] Map to manipulate; must not be NULL
+ * @param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
  *
- * \return The root of the rotated sub-tree
+ * @return The root of the rotated sub-tree
  */
 static CdsMapItem* cdsMapRotateLeftLeft(CdsMap* map, CdsMapItem* subroot);
 
 
 /** Perform a double RL rotation of the sub-tree rooted at `subroot`
  *
- * \param map     [in,out] Map to manipulate; must not be NULL
- * \param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
+ * @param map     [in,out] Map to manipulate; must not be NULL
+ * @param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
  *
- * \return The root of the rotated sub-tree
+ * @return The root of the rotated sub-tree
  */
 static CdsMapItem* cdsMapRotateRightLeft(CdsMap* map, CdsMapItem* subroot);
 
 
 /** Perform a double LR rotation of the sub-tree rooted at `subroot`
  *
- * \param map     [in,out] Map to manipulate; must not be NULL
- * \param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
+ * @param map     [in,out] Map to manipulate; must not be NULL
+ * @param subroot [in,out] Root of the sub-tree to rotate; must not be NULL
  *
- * \return The root of the rotated sub-tree
+ * @return The root of the rotated sub-tree
  */
 static CdsMapItem* cdsMapRotateLeftRight(CdsMap* map, CdsMapItem* subroot);
 
@@ -162,11 +162,11 @@ static CdsMapItem* cdsMapRotateLeftRight(CdsMap* map, CdsMapItem* subroot);
  *
  * This function takes care of rebalancing the whole tree.
  *
- * \param map        [in,out] Map to manipulate; must not be NULL
- * \param item       [in,out] Where to insert `newitem`; must not be NULL
- * \param newitem    [in,out] New item to insert; must not be NULL
- * \param key        [in]     Key for the new item
- * \param insertLeft [in]     Should `newitem` be inserted at left or right?
+ * @param map        [in,out] Map to manipulate; must not be NULL
+ * @param item       [in,out] Where to insert `newitem`; must not be NULL
+ * @param newitem    [in,out] New item to insert; must not be NULL
+ * @param key        [in]     Key for the new item
+ * @param insertLeft [in]     Should `newitem` be inserted at left or right?
  */
 static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
         CdsMapItem* newitem, void* key, bool insertLeft);

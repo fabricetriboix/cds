@@ -19,8 +19,8 @@
 
 /** Common stuff for C data structures
  *
- * \defgroup cdscommon Common
- * \addtogroup cdscommon
+ * @defgroup cdscommon Common
+ * @addtogroup cdscommon
  * @{
  */
 
@@ -77,18 +77,18 @@
 
 /** Replacement for `malloc()`
  *
- * \param size_B [in] The number of bytes to allocate; must be > 0
+ * @param size_B [in] The number of bytes to allocate; must be > 0
  *
- * \return The allocated memory, never NULL
+ * @return The allocated memory, never NULL
  */
 void* CdsMalloc(size_t size_B);
 
 
 /** Replacement for `malloc()`, and initialise memory to zero
  *
- * \param size_B [in] The number of bytes to allocate; must be > 0
+ * @param size_B [in] The number of bytes to allocate; must be > 0
  *
- * \return The allocated memory, never NULL
+ * @return The allocated memory, never NULL
  */
 void* CdsMallocZ(size_t size_B);
 
