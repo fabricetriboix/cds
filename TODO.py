@@ -10,6 +10,7 @@ unitTests = []
 for dirName, dirs, files in os.walk("."):
     for filename in files:
         if fnmatch(filename, "*.c") or fnmatch(filename, "*.cpp") \
+                or fnmatch(filename, "*.h") or fnmatch(filename, "*.hpp") \
                 or fnmatch(filename, "SCons*"):
             path = os.path.join(dirName, filename)
             f = open(path, "r")
