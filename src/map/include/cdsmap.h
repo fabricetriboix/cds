@@ -40,10 +40,6 @@
 typedef struct CdsMap CdsMap;
 
 
-/** Opaque type that represents an iterator */
-typedef struct CdsMapIterator CdsMapIterator;
-
-
 /** Map item
  *
  * You can "derive" from this structure, as long as it remains at the top of
@@ -240,45 +236,32 @@ bool CdsMapRemove(CdsMap* map, void* key);
 void CdsMapItemRemove(CdsMap* map, CdsMapItem* item);
 
 
-/** Create a map iterator
+/** Reset the map iterator
  *
- * You must call `CdsMapIteratorDestroy()` on the created iterator once you
- * finished with it.
- *
- * Only one iterator can be active at any time on a given map. Items will be
- * iterated in an in-order manner, either in ascending or descending order,
- * depending on the value of the `ascending` argument.
+ * Items will be iterated in an in-order manner, either in ascending or
+ * descending order, depending on the value of the `ascending` argument.
  *
  * You must not insert or remove items while iterating through the map.
  *
  * @param map       [in] Map to iterate through; must not be NULL
  * @param ascending [in] Whether to iterate in ascending or descending order
- *
- * @return An iterator object, never NULL
  */
-CdsMapIterator* CdsMapIteratorCreate(CdsMap* map, bool ascending);
+void CdsMapIteratorReset(CdsMap* map, bool ascending);
 
 
 /** Iterate to next item
  *
- * The first time this function is called on an iterator, the very first item
+ * The first time this function is called after a reset, the very first item
  * will be returned. For example, for a `CDSMAP_ITERATOR_ASCENDING` iterator,
  * the first call to this function will return the item with the smallest key.
  *
- * @param iterator [in,out] Iterator to use; must not be NULL
- * @param pKey     [out]    Key for the corresponding item; set to NULL if you
- *                          don't need the key
+ * @param map  [in]  Map to iterate through; must not be NULL
+ * @param pKey [out] Key for the corresponding item; set to NULL if you don't
+ *                   need the key
  *
  * @return Next item, or NULL if the end is reached
  */
-CdsMapItem* CdsMapIteratorNext(CdsMapIterator* iterator, void** pKey);
-
-
-/** Destroy an iterator
- *
- * @param iterator [in,out] Iterator to destroy; must not be NULL
- */
-void CdsMapIteratorDestroy(CdsMapIterator* iterator);
+CdsMapItem* CdsMapIteratorNext(CdsMap* map, void** pKey);
 
 
 
