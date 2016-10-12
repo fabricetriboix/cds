@@ -25,19 +25,31 @@
  +---------------------------------*/
 
 
-void* CdsMalloc(size_t size_B)
+void* _CdsMalloc(size_t size_B, const char* file, int line)
 {
     CDSASSERT(size_B > 0);
+#ifdef CDS_WITH_FLLOC
+    void* ptr = FllocMalloc(size_B, file, line);
+#else
+    (void)file;
+    (void)line;
     void* ptr = malloc(size_B);
+#endif
     CDSASSERT(ptr != NULL);
     return ptr;
 }
 
 
-void* CdsMallocZ(size_t size_B)
+void* _CdsMallocZ(size_t size_B, const char* file, int line)
 {
     CDSASSERT(size_B > 0);
+#ifdef CDS_WITH_FLLOC
+    void* ptr = FllocMalloc(size_B, file, line);
+#else
+    (void)file;
+    (void)line;
     void* ptr = malloc(size_B);
+#endif
     CDSASSERT(ptr != NULL);
     memset(ptr, 0, size_B);
     return ptr;

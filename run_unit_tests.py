@@ -44,12 +44,7 @@ if subprocess.call(args) != 0:
     ret = 1
 os.unlink("cds.rtt")
 
-# Check for memory leaks
-if mode == "debug":
-    if not os.path.exists("mtrace.log"):
-        print("ERROR: mtrace file not produced!")
-    else:
-        args = ["mtrace", path, "mtrace.log"]
-        subprocess.call(args)
+# NB: Flloc will print something on stderr about whether or not memory leaks
+# have been detected, so we don't have anything left to do here.
 
 sys.exit(ret)
