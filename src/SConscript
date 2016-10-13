@@ -59,8 +59,10 @@ if variant['env'].GetOption('make_doc') and variant['env']['HAS_DOXYGEN'] == "ye
 if len(testsrcs) > 0:
     testobjs = [variant['env'].StaticObject(src) for src in testsrcs]
     testobjs.append(rttestmainobj)
-    variant['env'].Program("cds_unit_tests", testobjs,
-            LIBS=['cds', 'rttest', 'rtsys'])
+    libs = ['cds', 'rttest', 'rtsys']
+    if GetOption('use_flloc'):
+        libs.append('flloc')
+    variant['env'].Program("cds_unit_tests", testobjs, LIBS=libs)
 
 # Build cds vs stl programs
 SConscript(os.path.join("cds_vs_stl", "SConscript"),

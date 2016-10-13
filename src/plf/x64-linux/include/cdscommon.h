@@ -29,8 +29,8 @@
 #include <stdint.h>
 #include <stdio.h>
 
-#ifdef CDS_ENABLE_MTRACE
-#include <mcheck.h>
+#ifdef CDS_WITH_FLLOC
+#include <flloc.h>
 #endif
 
 
@@ -81,7 +81,8 @@
  *
  * @return The allocated memory, never NULL
  */
-void* CdsMalloc(size_t size_B);
+#define CdsMalloc(_size_B) _CdsMalloc(_size_B, __FILE__, __LINE__)
+void* _CdsMalloc(size_t size_B, const char* file, int line);
 
 
 /** Replacement for `malloc()`, and initialise memory to zero
@@ -90,7 +91,9 @@ void* CdsMalloc(size_t size_B);
  *
  * @return The allocated memory, never NULL
  */
-void* CdsMallocZ(size_t size_B);
+#define CdsMallocZ(_size_B) _CdsMallocZ(_size_B, __FILE__, __LINE__)
+void* _CdsMallocZ(size_t size_B, const char* file, int line);
+
 
 
 /* @} */
