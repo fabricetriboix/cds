@@ -14,18 +14,20 @@ AddOption("--target", dest='target', default=autoplf,
 AddOption("--verbose", dest='verbose', action='store_true', default=False,
         help="Display full command lines")
 
-AddOption("--rtsys", dest='rtsys', default="",
-        help="Where rtsys is installed")
+AddOption("--incdir", dest='incdirs', action='append', default=[],
+        help="Include directory (can be specified multiple times)")
+
+AddOption("--libdir", dest='libdirs', action='append', default=[],
+        help="Library directory (can be specified multiple times)")
 
 AddOption("--no-ccache", dest='use_ccache', action='store_false', default=True,
         help="Do not use ccache")
 
+AddOption("--flloc", dest='use_flloc', action='store_true', default=False,
+        help="Enable memory leak check using flloc")
+
 AddOption("--mkdoc", dest='make_doc', action='store_true', default=False,
         help="Also build the documentation for all variants")
-
-rtsysPath = ""
-if GetOption('rtsys'):
-    rtsysPath = os.path.abspath(GetOption('rtsys'))
 
 
 # Manage cross-compilation
@@ -99,11 +101,11 @@ for v in variantNames:
     variants[v]['env'].Append(LIBPATH = settings[v]['libpath'])
     variants[v]['env'].Append(LIBPATH = [variants[v]['build_root']])
 
-    # Add paths for rtsys
-    if rtsysPath:
-        variants[v]['env'].AppendENVPath('PATH', os.path.join(rtsysPath, "bin"))
-        variants[v]['env'].Append(CPPPATH = os.path.join(rtsysPath, "include"))
-        variants[v]['env'].Append(LIBPATH = os.path.join(rtsysPath, "lib"))
+    # Add include and library paths specified on the command line
+    for d in GetOption('incdirs'):
+        variants[v]['env'].Append(CPPPATH = os.path.abspath(d))
+    for d in GetOption('libdirs'):
+        variants[v]['env'].Append(LIBPATH = os.path.abspath(d))
 
     # Autoconf-like stuff
     if not GetOption('clean') and not GetOption('help'):

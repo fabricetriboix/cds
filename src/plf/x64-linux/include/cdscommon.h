@@ -19,8 +19,8 @@
 
 /** Common stuff for C data structures
  *
- * \defgroup cdscommon Common
- * \addtogroup cdscommon
+ * @defgroup cdscommon Common
+ * @addtogroup cdscommon
  * @{
  */
 
@@ -28,6 +28,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+
+#ifdef CDS_WITH_FLLOC
+#include <flloc.h>
+#endif
 
 
 
@@ -73,20 +77,23 @@
 
 /** Replacement for `malloc()`
  *
- * \param size_B [in] The number of bytes to allocate; must be > 0
+ * @param size_B [in] The number of bytes to allocate; must be > 0
  *
- * \return The allocated memory, never NULL
+ * @return The allocated memory, never NULL
  */
-void* CdsMalloc(size_t size_B);
+#define CdsMalloc(_size_B) _CdsMalloc(_size_B, __FILE__, __LINE__)
+void* _CdsMalloc(size_t size_B, const char* file, int line);
 
 
 /** Replacement for `malloc()`, and initialise memory to zero
  *
- * \param size_B [in] The number of bytes to allocate; must be > 0
+ * @param size_B [in] The number of bytes to allocate; must be > 0
  *
- * \return The allocated memory, never NULL
+ * @return The allocated memory, never NULL
  */
-void* CdsMallocZ(size_t size_B);
+#define CdsMallocZ(_size_B) _CdsMallocZ(_size_B, __FILE__, __LINE__)
+void* _CdsMallocZ(size_t size_B, const char* file, int line);
+
 
 
 /* @} */

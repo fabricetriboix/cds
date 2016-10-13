@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import os
+import sys
 import subprocess
 import fnmatch
 
@@ -17,6 +18,9 @@ for m in modes:
 if mode == "":
     raise RuntimeError("Please compile cds unit tests for x64-linux; modes tried: {}".format(modes))
 
+if mode == "debug":
+    os.environ['MALLOC_TRACE'] = os.path.join(os.getcwd(), "mtrace.log")
+
 # Run the cds unit tests and capture the output
 output = subprocess.check_output([path])
 f = open("cds.rtt", 'w')
@@ -32,13 +36,15 @@ for dirName, dirs, files in os.walk("."):
                 unitTests.append(dirName + "/" + f)
 
 # Print the results
+args = ["rttest2text.py", "cds.rtt"]
+args.extend(unitTests)
 ret = 0
-try:
-    args = ["rttest2text.py", "cds.rtt"]
-    args.extend(unitTests)
-    subprocess.check_call(args)
-except:
+if subprocess.call(args) != 0:
     print("Failed to run rttest2text.py")
     ret = 1
 os.unlink("cds.rtt")
-exit(ret)
+
+# NB: Flloc will print something on stderr about whether or not memory leaks
+# have been detected, so we don't have anything left to do here.
+
+sys.exit(ret)
