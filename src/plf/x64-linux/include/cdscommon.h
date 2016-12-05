@@ -81,8 +81,11 @@
  *
  * @return The allocated memory, never NULL
  */
-#define CdsMalloc(_size_B) _CdsMalloc(_size_B, __FILE__, __LINE__)
+#define CdsMalloc(size_B) _CdsMalloc((size_B), __FILE__, __LINE__)
+
+/** @cond hidden */
 void* _CdsMalloc(size_t size_B, const char* file, int line);
+/** @endcond */
 
 
 /** Replacement for `malloc()`, and initialise memory to zero
@@ -91,8 +94,11 @@ void* _CdsMalloc(size_t size_B, const char* file, int line);
  *
  * @return The allocated memory, never NULL
  */
-#define CdsMallocZ(_size_B) _CdsMallocZ(_size_B, __FILE__, __LINE__)
+#define CdsMallocZ(size_B) _CdsMallocZ((size_B), __FILE__, __LINE__)
+
+/** @cond hidden */
 void* _CdsMallocZ(size_t size_B, const char* file, int line);
+/** @endcond */
 
 
 

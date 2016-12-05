@@ -53,8 +53,7 @@ CDS_VS_STL = cdslistperf stllistperf cdsmapperf stlmapperf mkrnd
 
 # Standard targets
 
-# XXX all: $(OUTPUT_LIBS) rttest_unit_tests rtsys_unit_tests doc
-all: $(OUTPUT_LIBS) cds_unit_tests $(CDS_VS_STL)
+all: $(OUTPUT_LIBS) doc cds_unit_tests $(CDS_VS_STL)
 
 doc: doc/html/index.html
 
@@ -126,7 +125,7 @@ mkrnd: mkrnd.o $(OUTPUT_LIBS)
 	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS) $(CXXLIB))
 
 
-doc/html/index.html: $(HDRS)
+doc/html/index.html: $(filter-out %_private.h,$(HDRS))
 ifeq ($(DOXYGEN),)
 	@echo "Doxygen not found, documentation will not be built"
 else
