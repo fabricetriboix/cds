@@ -24,7 +24,8 @@ MODULES = $(TOPDIR)/src/plf/$(PLF) $(TOPDIR)/src/list \
 			$(TOPDIR)/src/binarytree $(TOPDIR)/src/map
 
 # Path for make to search for source files
-VPATH = $(foreach i,$(MODULES),$(i)/src) $(foreach i,$(MODULES),$(i)/test)
+VPATH = $(foreach i,$(MODULES),$(i)/src) $(foreach i,$(MODULES),$(i)/test) \
+		$(TOPDIR)/src/cds_vs_stl/list $(TOPDIR)/src/cds_vs_stl/map
 
 # Output libraries
 OUTPUT_LIBS = libcds.a
@@ -46,11 +47,14 @@ ifeq ($(V),debug)
 LINKLIBS += -lflloc
 endif
 
+# CDS vs STL executables
+CDS_VS_STL = cdslistperf stllistperf cdsmapperf stlmapperf mkrnd
+
 
 # Standard targets
 
 # XXX all: $(OUTPUT_LIBS) rttest_unit_tests rtsys_unit_tests doc
-all: $(OUTPUT_LIBS) cds_unit_tests
+all: $(OUTPUT_LIBS) cds_unit_tests $(CDS_VS_STL)
 
 doc: doc/html/index.html
 
@@ -92,7 +96,7 @@ endef
 
 define RUN_LINK
 set -eu; \
-cmd="$(CC) $(LINKFLAGS) -o $(1) $(2) -L. $(3)"; \
+cmd="$(CC) -L. $(LINKFLAGS) -o $(1) $(2) $(3)"; \
 if [ $(D) == 1 ]; then \
 	echo "$$cmd"; \
 else \
@@ -106,10 +110,20 @@ libcds.a: $(LIBCDS_OBJS)
 cds_unit_tests: $(CDS_TEST_OBJS) $(RTTEST_MAIN_OBJ) $(OUTPUT_LIBS)
 	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS))
 
-# TODO cdslistperf:
-# TODO stllistperf:
-# TODO cdsmapperf:
-# TODO stlmapperf:
+cdslistperf: cdslistperf.o $(OUTPUT_LIBS)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS))
+
+stllistperf: stllistperf.o $(OUTPUT_LIBS)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS) $(CXXLIB))
+
+cdsmapperf: cdsmapperf.o $(OUTPUT_LIBS)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS))
+
+stlmapperf: stlmapperf.o $(OUTPUT_LIBS)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS) $(CXXLIB))
+
+mkrnd: mkrnd.o $(OUTPUT_LIBS)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS) $(CXXLIB))
 
 
 doc/html/index.html: $(HDRS)

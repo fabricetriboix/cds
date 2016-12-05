@@ -38,6 +38,7 @@ DEFS = -D_GNU_SOURCE
 CFLAGS = -Wall -Wextra -Werror -std=c99
 CXXFLAGS = -Wall -Wextra -Werror -std=c++11
 LINKFLAGS =
+CXXLIB = -lstdc++
 
 ifneq ($(V),debug)
 CFLAGS += -O3
