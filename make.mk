@@ -40,11 +40,17 @@ LIBCDS_OBJS = cdscommon.o cdslist.o cdsbinarytree.o cdsmap.o
 RTTEST_MAIN_OBJ = rttestmain.o
 CDS_TEST_OBJS = test-list.o test-binarytree.o test-map.o
 
+# Libraries to link against when building test programs
+LINKLIBS = -lcds -lrttest -lrtsys
+ifeq ($(V),debug)
+LINKLIBS += -lflloc
+endif
+
 
 # Standard targets
 
 # XXX all: $(OUTPUT_LIBS) rttest_unit_tests rtsys_unit_tests doc
-all: $(OUTPUT_LIBS)
+all: $(OUTPUT_LIBS) cds_unit_tests
 
 doc: doc/html/index.html
 
@@ -59,7 +65,7 @@ if [ $(D) == 1 ]; then \
 else \
 	echo "CC    $(1)"; \
 fi; \
-$$cmd
+$$cmd || (echo "Command line was: $$cmd"; exit 1)
 endef
 
 define RUN_CXX
@@ -70,7 +76,7 @@ if [ $(D) == 1 ]; then \
 else \
 	echo "CXX   $(1)"; \
 fi; \
-$$cmd
+$$cmd || (echo "Command line was: $$cmd"; exit 1)
 endef
 
 define RUN_AR
@@ -81,7 +87,7 @@ if [ $(D) == 1 ]; then \
 else \
 	echo "AR    $(1)"; \
 fi; \
-$$cmd
+$$cmd || (echo "Command line was: $$cmd"; exit 1)
 endef
 
 define RUN_LINK
@@ -92,13 +98,13 @@ if [ $(D) == 1 ]; then \
 else \
 	echo "LINK  $(1)"; \
 fi; \
-$$cmd
+$$cmd || (echo "Command line was: $$cmd"; exit 1)
 endef
 
 libcds.a: $(LIBCDS_OBJS)
 
 cds_unit_tests: $(CDS_TEST_OBJS) $(RTTEST_MAIN_OBJ) $(OUTPUT_LIBS)
-	@$(call RUN_LINK,$@,$^,-lrttest -lrtsys)
+	@$(call RUN_LINK,$@,$(filter %.o,$^),$(LINKLIBS))
 
 # TODO cdslistperf:
 # TODO stllistperf:
@@ -177,6 +183,7 @@ dbg:
 	@echo "Platform = $(PLF)"
 	@echo "VPATH = $(VPATH)"
 	@echo "HDRS = $(HDRS)"
+	@echo "PATH = $(PATH)"
 
 
 # Automatic header dependencies

@@ -51,6 +51,12 @@ endif
 CFLAGS += $(DEFS)
 CXXFLAGS += $(DEFS)
 
+# Paths where to find include files; add more if needed (but without -I)
+INC_PATH = $(C_INCLUDE_PATH)
+
+# Paths where to find libraries; add more if needed (but without -L)
+LIB_PATH = $(LIBRARY_PATH)
+
 # Default installation PREFIX
 PREFIX = /usr/local
 
@@ -67,6 +73,10 @@ DOCDIR = $(PREFIX)/doc/cds
 
 BUILDDIR = build/$(PLF)/$(V)
 TOPDIR = ../../..
+
+CFLAGS += $(foreach i,$(INC_PATH),-I$(i))
+CXXFLAGS += $(foreach i,$(INC_PATH),-I$(i))
+LINKFLAGS += $(foreach i,$(LIB_PATH),-L$(i))
 
 # Export all variables
 export
