@@ -50,6 +50,9 @@ endif
 # CDS vs STL executables
 CDS_VS_STL = cdslistperf stllistperf cdsmapperf stlmapperf mkrnd
 
+# CDS vs STL object files
+CDS_VS_STL_OBJS = $(foreach i,$(CDS_VS_STL),$(i).o)
+
 
 # Standard targets
 
@@ -165,7 +168,7 @@ cmd="mkdir -p `dirname $$dst` && cp -rf $(1) $$dst && chmod $$mode $$dst"; \
 if [ $(D) == 1 ]; then \
 	echo "$$cmd"; \
 else \
-	echo "INST  $(1)"; \
+	echo "INST  `basename $(1)`"; \
 fi; \
 eval $$cmd;
 endef
@@ -201,8 +204,7 @@ dbg:
 
 # Automatic header dependencies
 
-# XXX OBJS = $(LIBCDS_OBJS) $(RTTEST_MAIN_OBJ) $(CDS_TEST_OBJS)
-OBJS = $(LIBCDS_OBJS)
+OBJS = $(LIBCDS_OBJS) $(RTTEST_MAIN_OBJ) $(CDS_TEST_OBJS) $(CDS_VS_STL_OBJS)
 
 -include $(OBJS:.o=.d)
 
