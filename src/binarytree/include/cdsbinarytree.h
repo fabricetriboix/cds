@@ -40,7 +40,7 @@
 typedef struct CdsBinaryTree CdsBinaryTree;
 
 
-/* Binary tree node
+/** Binary tree node
  *
  * You can "derive" from this structure, as long as it remains at the top of
  * your own structure definition. For example:
