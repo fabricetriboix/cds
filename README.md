@@ -17,14 +17,21 @@ This project has been created for two reasons:
 Getting started
 ---------------
 
+To build and install on Linux, a Makefile is provided. For other
+targets, you will have to come up with your own build system.
+
 First install [rtsys](https://github.com/fabricetriboix/rtsys). Then
 follow the steps:
 
-    $ scons --help
-    $ scons --mkdoc -j4    # Build
-    $ ./run_unit_tests.py  # Run the unit tests
-    $ ./install.py --help
-    $ ./install.py         # Install
+    $ vim Makefile                    # Adjust your settings
+    $ make                            # Build
+    $ make test                       # Run unit tests
+    $ make install PREFIX=/your/path  # Install into PREFIX
+
+The Makefile will use ccache if available. You can disable it by adding
+`CCACHE=` on the command line, like so:
+
+    $ make CCACHE=
 
 Read the doxygen documentation to learn how to use cds.
 
@@ -56,4 +63,3 @@ Coverity status
 This project is regularily scanned through Coverity.
 [Click here](https://scan.coverity.com/projects/fabricetriboix-cds)
 for its status.
-
