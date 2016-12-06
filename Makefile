@@ -23,12 +23,12 @@
 # Set D to 1 to increase verbosity
 D = 0
 
-# Set V to "release" to make a release build
-# Supported variants: "debug" (default) and "release"
-V = debug
+# Set V to "debug" to make a debug build
+# Supported variants: "release" (default) and "debug"
+V = release
 
 # Set PLF to the platform you want to build to
-# This must be one of the platform directory listed under "src/rtplf"
+# This must be one of the platform directory listed under "src/plf"
 PLF := $(shell ./autodetectplf.py)
 
 CC = gcc
