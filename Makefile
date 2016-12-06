@@ -83,8 +83,8 @@ LINKFLAGS += $(foreach i,$(LIB_PATH),-L$(i))
 export
 
 # Check there are no duplicate source file names
-count1 := $(shell find src -name '*.c' | sed -e 's:.*/::' | sort | wc -l)
-count2 := $(shell find src -name '*.c' | sed -e 's:.*/::' | sort | uniq | wc -l)
+count1 := $(shell find src -name '*.c' -o -name '*.cpp' | wc -l)
+count2 := $(shell find src -name '*.c' -o -name '*.cpp' | sed -e 's:.*/::' | sort | uniq | wc -l)
 ifneq ($(count1),$(count2))
 $(error Duplicate source file names detected)
 endif
