@@ -2,9 +2,10 @@
 
 set -eu
 
-if [ ! -e './build/x64-linux/release/cds_vs_stl/list/stllistperf' ]; then
-    echo "Executables for linux 64-bit not found"
+if [ ! -e './build/x64-linux/release/stllistperf' ]; then
+    echo "Release executables for linux 64-bit not found"
     echo "This shell script only works for Linux x64"
+    echo "Please run make beforehand"
     exit 1
 fi
 
@@ -24,8 +25,7 @@ count=10000000
 printf "Testing lists: insert, walk and delete %'d items\n" $count
 
 /usr/bin/time -o "$tmpfile" \
-    ./build/x64-linux/release/cds_vs_stl/list/cdslistperf "$count" \
-    > /dev/null
+    ./build/x64-linux/release/cdslistperf "$count" > /dev/null
 read cdslistkernel_s cdslistuser_s cdslistmem_KiB < "$tmpfile"
 cdslistkernel_ms=`echo "$cdslistkernel_s" 1000 \* p | dc`
 cdslistuser_ms=`echo "$cdslistuser_s" 1000 \* p | dc`
@@ -34,8 +34,7 @@ cdslistmem_MiB=`echo "$cdslistmem_KiB" 1024 / p | dc`
 echo "  cds list: $cdslisttime_ms ms  $cdslistmem_MiB MiB"
 
 /usr/bin/time -o "$tmpfile" \
-    ./build/x64-linux/release/cds_vs_stl/list/stllistperf "$count" \
-    > /dev/null
+    ./build/x64-linux/release/stllistperf "$count" > /dev/null
 read stllistkernel_s stllistuser_s stllistmem_KiB < "$tmpfile"
 stllistkernel_ms=`echo "$stllistkernel_s" 1000 \* p | dc`
 stllistuser_ms=`echo "$stllistuser_s" 1000 \* p | dc`
@@ -65,11 +64,10 @@ fi
 count=500000
 printf "Testing maps: insert and delete %'d items\n" $count
 
-./build/x64-linux/release/cds_vs_stl/map/mkrnd "$count" "$rndfile"
+./build/x64-linux/release/mkrnd "$count" "$rndfile"
 
 /usr/bin/time -o "$tmpfile" \
-    ./build/x64-linux/release/cds_vs_stl/map/cdsmapperf \
-        "$count" "$rndfile" > /dev/null
+    ./build/x64-linux/release/cdsmapperf "$count" "$rndfile" > /dev/null
 read cdsmapkernel_s cdsmapuser_s cdsmapmem_KiB < "$tmpfile"
 cdsmapkernel_ms=`echo "$cdsmapkernel_s" 1000 \* p | dc`
 cdsmapuser_ms=`echo "$cdsmapuser_s" 1000 \* p | dc`
@@ -78,8 +76,7 @@ cdsmapmem_MiB=`echo "$cdsmapmem_KiB" 1024 / p | dc`
 echo "  cds map: $cdsmaptime_ms ms  $cdsmapmem_MiB MiB"
 
 /usr/bin/time -o "$tmpfile" \
-    ./build/x64-linux/release/cds_vs_stl/map/stlmapperf \
-        "$count" "$rndfile" > /dev/null
+    ./build/x64-linux/release/stlmapperf "$count" "$rndfile" > /dev/null
 read stlmapkernel_s stlmapuser_s stlmapmem_KiB < "$tmpfile"
 stlmapkernel_ms=`echo "$stlmapkernel_s" 1000 \* p | dc`
 stlmapuser_ms=`echo "$stlmapuser_s" 1000 \* p | dc`
