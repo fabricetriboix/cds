@@ -230,6 +230,8 @@ bool CdsMapRemove(CdsMap* map, void* key);
 
 /** Remove an item directly
  *
+ * Both the item and its key will be unreferenced.
+ *
  * @param map  [in,out] Map to manipulate; must not be NULL
  * @param item [in,out] Item to remove; must not be NULL
  */
