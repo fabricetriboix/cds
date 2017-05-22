@@ -25,13 +25,14 @@
  +----------------*/
 
 
-#define CDSMAP_FLAG_LEFT  0x01
-#define CDSMAP_FLAG_RIGHT 0x02
-#define CDSMAP_FLAG_SELF  0x04
+#define CDSMAP_FLAG_DIG_LEFT   0x01
+#define CDSMAP_FLAG_DIG_RIGHT  0x02
+#define CDSMAP_FLAG_ITER_LEFT  0x10
+#define CDSMAP_FLAG_ITER_RIGHT 0x20
+#define CDSMAP_FLAG_ITER_SELF  0x04
 
 
-struct CdsMap
-{
+struct CdsMap {
     CdsMapItem*     root; // Keep this at the top, it's necessary for unit tests
     char*           name;
     int64_t         capacity;
@@ -49,6 +50,17 @@ struct CdsMap
 /*------------------------------+
  | Privte function declarations |
  +------------------------------*/
+
+
+/** Clear the "dig" flags of the given item
+ *
+ * @param item [in] Item to manipulate; must not be NULL
+ */
+static inline void cdsMapClearDigFlags(CdsMapItem* item)
+{
+    CDSASSERT(item != NULL);
+    item->flags &= ~(CDSMAP_FLAG_DIG_LEFT | CDSMAP_FLAG_DIG_RIGHT);
+}
 
 
 /** Check if the given item is the left child of its parent
@@ -94,11 +106,20 @@ static bool cdsMapIsLeaf(const CdsMapItem* item)
 
 /** Go down a sub-tree as far as possible on the left
  *
- * @param item [in] The sub-tree root, must not be NULL
+ * @param item [in] The sub-tree root; must not be NULL
  *
  * @return The left-most item in the sub-tree, never NULL
  */
 static CdsMapItem* cdsMapDigLeft(CdsMapItem* item);
+
+
+/** Same as `cdsMapDigLeft()`, but when we iterate over the map
+ *
+ * @param item [in] The sub-tree root; must not be NULL
+ *
+ * @return The left-most item in the sub-tree, never NULL
+ */
+static CdsMapItem* cdsMapDigLeftIter(CdsMapItem* item);
 
 
 /** Go down a sub-tree as far as possible on the right
@@ -108,6 +129,15 @@ static CdsMapItem* cdsMapDigLeft(CdsMapItem* item);
  * @return The right-most item in the sub-tree, never NULL
  */
 static CdsMapItem* cdsMapDigRight(CdsMapItem* item);
+
+
+/** Same as `cdsMapDigRight()`, but when we iterate over the map
+ *
+ * @param item [in] The sub-tree root; must not be NULL
+ *
+ * @return The right-most item in the sub-tree, never NULL
+ */
+static CdsMapItem* cdsMapDigRightIter(CdsMapItem* item);
 
 
 /** Perform a single RR rotation of the sub-tree rooted at `subroot`
@@ -168,7 +198,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
  *
  * @param map [in,out] Map to manipulate; must not be NULL
  */
-static void cdsMapNext(CdsMap* map);
+static void cdsMapIterNext(CdsMap* map);
 
 
 
@@ -215,18 +245,18 @@ void CdsMapClear(CdsMap* map)
 
     if (map->root != NULL) {
         // Traverse the tree in post-order fashion
-        map->root->flags = 0;
+        cdsMapClearDigFlags(map->root);
         for (CdsMapItem* curr = map->root; curr != NULL; ) {
-            if (!(curr->flags & CDSMAP_FLAG_LEFT) && (curr->left != NULL)) {
-                curr->flags |= CDSMAP_FLAG_LEFT;
+            if (!(curr->flags & CDSMAP_FLAG_DIG_LEFT) && (curr->left != NULL)) {
+                curr->flags |= CDSMAP_FLAG_DIG_LEFT;
                 curr = curr->left;
-                curr->flags = 0;
+                cdsMapClearDigFlags(curr);
 
-            } else if (   !(curr->flags & CDSMAP_FLAG_RIGHT)
+            } else if (   !(curr->flags & CDSMAP_FLAG_DIG_RIGHT)
                         && (curr->right != NULL)) {
-                curr->flags |= CDSMAP_FLAG_RIGHT;
+                curr->flags |= CDSMAP_FLAG_DIG_RIGHT;
                 curr = curr->right;
-                curr->flags = 0;
+                cdsMapClearDigFlags(curr);
 
             } else {
                 CdsMapItem* tmp = curr->parent;
@@ -581,15 +611,16 @@ CdsMapItem* CdsMapIteratorStart(CdsMap* map, bool ascending, void** pKey)
     } else {
         map->iterAscending = ascending;
         if (ascending) {
-            curr = cdsMapDigLeft(map->root);
+            curr = cdsMapDigLeftIter(map->root);
         } else {
-            curr = cdsMapDigRight(map->root);
+            curr = cdsMapDigRightIter(map->root);
         }
-        curr->flags |= CDSMAP_FLAG_SELF;
+        curr->flags |= CDSMAP_FLAG_ITER_SELF;
         if (pKey != NULL) {
             *pKey = curr->key;
         }
-        cdsMapNext(map);
+        map->iterNext = curr;
+        cdsMapIterNext(map);
     }
     return curr;
 }
@@ -598,14 +629,14 @@ CdsMapItem* CdsMapIteratorStart(CdsMap* map, bool ascending, void** pKey)
 CdsMapItem* CdsMapIteratorNext(CdsMap* map, void** pKey)
 {
     CDSASSERT(map != NULL);
-    if (NULL == map->iterNext) {
-        return NULL;
+    CdsMapItem* curr = map->iterNext;
+    if (curr != NULL) {
+        if (pKey != NULL) {
+            pKey = curr->key;
+        }
+        cdsMapIterNext(map);
     }
-    cdsMapNext(map);
-    if (pKey != NULL) {
-        pKey = map->iterNext->key;
-    }
-    return map->iterNext;
+    return curr;
 }
 
 
@@ -619,9 +650,26 @@ static CdsMapItem* cdsMapDigLeft(CdsMapItem* item)
 {
     CDSASSERT(item != NULL);
 
+    // Do not touch the "iter" flags, as we might be in the middle of iterating
+    // over the map.
+    cdsMapClearDigFlags(item);
+    while ((item->left != NULL) && !(item->flags & CDSMAP_FLAG_DIG_LEFT)) {
+        item->flags |= CDSMAP_FLAG_DIG_LEFT;
+        item = item->left;
+        cdsMapClearDigFlags(item);
+    }
+    return item;
+}
+
+
+static CdsMapItem* cdsMapDigLeftIter(CdsMapItem* item)
+{
+    CDSASSERT(item != NULL);
+
+    // Clear both "dig" and "iter" flags when iterating over the map.
     item->flags = 0;
-    while ((item->left != NULL) && !(item->flags & CDSMAP_FLAG_LEFT)) {
-        item->flags |= CDSMAP_FLAG_LEFT;
+    while ((item->left != NULL) && !(item->flags & CDSMAP_FLAG_DIG_LEFT)) {
+        item->flags |= CDSMAP_FLAG_DIG_LEFT;
         item = item->left;
         item->flags = 0;
     }
@@ -633,9 +681,26 @@ static CdsMapItem* cdsMapDigRight(CdsMapItem* item)
 {
     CDSASSERT(item != NULL);
 
+    // Do not touch the "iter" flags, as we might be in the middle of iterating
+    // over the map.
+    cdsMapClearDigFlags(item);
+    while ((item->right != NULL) && !(item->flags & CDSMAP_FLAG_DIG_RIGHT)) {
+        item->flags |= CDSMAP_FLAG_DIG_RIGHT;
+        item = item->right;
+        cdsMapClearDigFlags(item);
+    }
+    return item;
+}
+
+
+static CdsMapItem* cdsMapDigRightIter(CdsMapItem* item)
+{
+    CDSASSERT(item != NULL);
+
+    // Clear both "dig" and "iter" flags when iterating over the map.
     item->flags = 0;
-    while ((item->right != NULL) && !(item->flags & CDSMAP_FLAG_RIGHT)) {
-        item->flags |= CDSMAP_FLAG_RIGHT;
+    while ((item->right != NULL) && !(item->flags & CDSMAP_FLAG_DIG_RIGHT)) {
+        item->flags |= CDSMAP_FLAG_DIG_RIGHT;
         item = item->right;
         item->flags = 0;
     }
@@ -971,7 +1036,7 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
 }
 
 
-static void cdsMapNext(CdsMap* map)
+static void cdsMapIterNext(CdsMap* map)
 {
     CdsMapItem* curr = map->iterNext;
     if (NULL == curr) {
@@ -982,11 +1047,11 @@ static void cdsMapNext(CdsMap* map)
         // itself
         //  => Visit the sub-tree right of `curr`, or if done already, the
         //     first non-visited ancestor
-        if (!(curr->flags & CDSMAP_FLAG_RIGHT) && (curr->right != NULL)) {
-            curr->flags |= CDSMAP_FLAG_RIGHT;
-            map->iterNext = cdsMapDigLeft(curr->right);
+        if (!(curr->flags & CDSMAP_FLAG_ITER_RIGHT) && (curr->right != NULL)) {
+            curr->flags |= CDSMAP_FLAG_ITER_RIGHT;
+            map->iterNext = cdsMapDigLeftIter(curr->right);
         } else {
-            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_ITER_SELF)) {
                 curr = curr->parent;
             }
             map->iterNext = curr;
@@ -996,17 +1061,17 @@ static void cdsMapNext(CdsMap* map)
         // itself
         //  => Visit the sub-tree left of `curr`, or if done already, the
         //     first non-visited ancestor
-        if (!(curr->flags & CDSMAP_FLAG_LEFT) && (curr->left != NULL)) {
-            curr->flags |= CDSMAP_FLAG_LEFT;
-            map->iterNext = cdsMapDigRight(curr->left);
+        if (!(curr->flags & CDSMAP_FLAG_ITER_LEFT) && (curr->left != NULL)) {
+            curr->flags |= CDSMAP_FLAG_ITER_LEFT;
+            map->iterNext = cdsMapDigRightIter(curr->left);
         } else {
-            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_ITER_SELF)) {
                 curr = curr->parent;
             }
             map->iterNext = curr;
         }
     }
     if (map->iterNext != NULL) {
-        map->iterNext->flags |= CDSMAP_FLAG_SELF;
+        map->iterNext->flags |= CDSMAP_FLAG_ITER_SELF;
     }
 }

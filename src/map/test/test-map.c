@@ -1012,6 +1012,7 @@ RTT_TEST_END
 
 RTT_TEST_START(cds_should_iterate_through_map)
 {
+    int count = CdsMapSize(gMap);
     int lastValue = INT_MIN;
     void* key;
     for (   CdsMapItem* item = CdsMapIteratorStart(gMap, true, &key);
@@ -1020,12 +1021,15 @@ RTT_TEST_START(cds_should_iterate_through_map)
         TestItem* it = (TestItem*)item;
         RTT_EXPECT(it->value > lastValue);
         lastValue = it->value;
+        count--;
     }
+    RTT_EXPECT(0 == count);
 }
 RTT_TEST_END
 
 RTT_TEST_START(cds_should_iterate_through_map_and_remove_some_items)
 {
+    int count = CdsMapSize(gMap);
     int lastValue = INT_MIN;
     void* key;
     for (   CdsMapItem* item = CdsMapIteratorStart(gMap, true, &key);
@@ -1037,7 +1041,9 @@ RTT_TEST_START(cds_should_iterate_through_map_and_remove_some_items)
             CdsMapItemRemove(gMap, item); // Remove items with odd values
         }
         lastValue = it->value;
+        count--;
     }
+    RTT_EXPECT(0 == count);
 }
 RTT_TEST_END
 
