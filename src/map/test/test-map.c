@@ -1019,6 +1019,13 @@ RTT_TEST_START(cds_should_iterate_through_map)
             item != NULL;
             item = CdsMapIteratorNext(gMap, &key) ) {
         TestItem* it = (TestItem*)item;
+        char buffer[16];
+        if (151 == it->value) {
+            snprintf(buffer, sizeof(buffer), "00000150");
+        } else {
+            snprintf(buffer, sizeof(buffer), "%08d", it->value);
+        }
+        RTT_EXPECT(strcmp(buffer, (const char*)key) == 0);
         RTT_EXPECT(it->value > lastValue);
         lastValue = it->value;
         count--;
@@ -1036,6 +1043,13 @@ RTT_TEST_START(cds_should_iterate_through_map_and_remove_some_items)
             item != NULL;
             item = CdsMapIteratorNext(gMap, &key) ) {
         TestItem* it = (TestItem*)item;
+        char buffer[16];
+        if (151 == it->value) {
+            snprintf(buffer, sizeof(buffer), "00000150");
+        } else {
+            snprintf(buffer, sizeof(buffer), "%08d", it->value);
+        }
+        RTT_EXPECT(strcmp(buffer, (const char*)key) == 0);
         RTT_EXPECT(it->value > lastValue);
         if (it->value % 2) {
             CdsMapItemRemove(gMap, item); // Remove items with odd values

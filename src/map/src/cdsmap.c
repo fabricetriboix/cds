@@ -632,7 +632,7 @@ CdsMapItem* CdsMapIteratorNext(CdsMap* map, void** pKey)
     CdsMapItem* curr = map->iterNext;
     if (curr != NULL) {
         if (pKey != NULL) {
-            pKey = curr->key;
+            *pKey = curr->key;
         }
         cdsMapIterNext(map);
     }
