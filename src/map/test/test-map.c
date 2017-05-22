@@ -1010,21 +1010,32 @@ RTT_TEST_START(cds_check_map_shape_after_removing_item_with_RL_rotation)
 }
 RTT_TEST_END
 
-RTT_TEST_START(cds_should_reset_iterator)
-{
-    CdsMapIteratorReset(gMap, true);
-}
-RTT_TEST_END
-
 RTT_TEST_START(cds_should_iterate_through_map)
 {
     int lastValue = INT_MIN;
     void* key;
-    for (   CdsMapItem* item = CdsMapIteratorNext(gMap, &key);
+    for (   CdsMapItem* item = CdsMapIteratorStart(gMap, true, &key);
             item != NULL;
             item = CdsMapIteratorNext(gMap, &key) ) {
         TestItem* it = (TestItem*)item;
         RTT_EXPECT(it->value > lastValue);
+        lastValue = it->value;
+    }
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_iterate_through_map_and_remove_some_items)
+{
+    int lastValue = INT_MIN;
+    void* key;
+    for (   CdsMapItem* item = CdsMapIteratorStart(gMap, true, &key);
+            item != NULL;
+            item = CdsMapIteratorNext(gMap, &key) ) {
+        TestItem* it = (TestItem*)item;
+        RTT_EXPECT(it->value > lastValue);
+        if (it->value % 2) {
+            CdsMapItemRemove(gMap, item); // Remove items with odd values
+        }
         lastValue = it->value;
     }
 }
@@ -1098,8 +1109,8 @@ RTT_GROUP_END(TestCdsMap,
         cds_reshape_map_before_removal_with_RL_rotation,
         cds_map_should_remove_item_with_RL_rotation,
         cds_check_map_shape_after_removing_item_with_RL_rotation,
-        cds_should_reset_iterator,
         cds_should_iterate_through_map,
+        cds_should_iterate_through_map_and_remove_some_items,
         cds_should_clear_map,
         cds_should_destroy_map);
 
@@ -2831,9 +2842,10 @@ RTT_TEST_START(cds_should_create_empty_map)
 }
 RTT_TEST_END
 
-RTT_TEST_START(cds_should_reset_empty_iterator)
+RTT_TEST_START(cds_should_start_empty_iterator)
 {
-    CdsMapIteratorReset(gMap, true);
+    CdsMapItem* item = CdsMapIteratorStart(gMap, true, NULL);
+    RTT_EXPECT(NULL == item);
 }
 RTT_TEST_END
 
@@ -2853,7 +2865,7 @@ RTT_TEST_END
 
 RTT_GROUP_END(TestIterateEmptyMap,
         cds_should_create_empty_map,
-        cds_should_reset_empty_iterator,
+        cds_should_start_empty_iterator,
         cds_next_item_should_be_null,
         cds_free_map)
 

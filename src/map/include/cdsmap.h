@@ -243,19 +243,22 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item);
  * Items will be iterated in an in-order manner, either in ascending or
  * descending order, depending on the value of the `ascending` argument.
  *
- * You must not insert or remove items while iterating through the map.
+ * You can't have multiple iterations going on simultaneously on the same map.
  *
- * @param map       [in] Map to iterate through; must not be NULL
- * @param ascending [in] Whether to iterate in ascending or descending order
+ * You must not insert or remove items while iterating through the map, except
+ * for calling the function `CdsMapItemRemove()` on the current item.
+ *
+ * @param map       [in]  Map to iterate through; must not be NULL
+ * @param ascending [in]  Whether to iterate in ascending or descending order
+ * @param pKey      [out] Key for the corresponding item; set to NULL if you
+ *                        don't need the key
+ *
+ * @return The first item, or NULL if the map is empty
  */
-void CdsMapIteratorReset(CdsMap* map, bool ascending);
+CdsMapItem* CdsMapIteratorStart(CdsMap* map, bool ascending, void** pKey);
 
 
 /** Iterate to next item
- *
- * The first time this function is called after a reset, the very first item
- * will be returned. For example, for a `CDSMAP_ITERATOR_ASCENDING` iterator,
- * the first call to this function will return the item with the smallest key.
  *
  * @param map  [in]  Map to iterate through; must not be NULL
  * @param pKey [out] Key for the corresponding item; set to NULL if you don't

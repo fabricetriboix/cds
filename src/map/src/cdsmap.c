@@ -41,8 +41,7 @@ struct CdsMap
     CdsMapKeyUnref  keyUnref;
     CdsMapItemUnref itemUnref;
     bool            iterAscending;
-    bool            iterFinished;
-    CdsMapItem*     iterCurrent;
+    CdsMapItem*     iterNext;
 };
 
 
@@ -163,6 +162,13 @@ static CdsMapItem* cdsMapRotateLeftRight(CdsMap* map, CdsMapItem* subroot);
  */
 static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
         CdsMapItem* newitem, void* key, bool insertLeft);
+
+
+/** Move `map->iterNext` to the next item in the iteration
+ *
+ * @param map [in,out] Map to manipulate; must not be NULL
+ */
+static void cdsMapNext(CdsMap* map);
 
 
 
@@ -566,71 +572,40 @@ void CdsMapItemRemove(CdsMap* map, CdsMapItem* item)
 }
 
 
-void CdsMapIteratorReset(CdsMap* map, bool ascending)
+CdsMapItem* CdsMapIteratorStart(CdsMap* map, bool ascending, void** pKey)
 {
     CDSASSERT(map != NULL);
-    map->iterAscending = ascending;
-    map->iterFinished = false;
-    map->iterCurrent = NULL;
-    if (map->root != NULL) {
-        map->root->flags = 0;
+    CdsMapItem* curr = NULL;
+    if (NULL == map->root) {
+        map->iterNext = false;
+    } else {
+        map->iterAscending = ascending;
+        if (ascending) {
+            curr = cdsMapDigLeft(map->root);
+        } else {
+            curr = cdsMapDigRight(map->root);
+        }
+        curr->flags |= CDSMAP_FLAG_SELF;
+        if (pKey != NULL) {
+            *pKey = curr->key;
+        }
+        cdsMapNext(map);
     }
+    return curr;
 }
 
 
 CdsMapItem* CdsMapIteratorNext(CdsMap* map, void** pKey)
 {
     CDSASSERT(map != NULL);
-
-    CdsMapItem* curr = map->iterCurrent;
-    if (NULL == curr) {
-        // Current item is NULL, could be because we just started or because we
-        // just finished
-        if (!(map->iterFinished) && (map->root != NULL)) {
-            if (map->iterAscending) {
-                map->iterCurrent = cdsMapDigLeft(map->root);
-            } else {
-                map->iterCurrent = cdsMapDigRight(map->root);
-            }
-        }
-    } else {
-        if (map->iterAscending) {
-            // NB: We already visited the sub-tree left of `curr` and `curr`
-            // itself
-            //  => Visit the sub-tree right of `curr`, or if done already, the
-            //     first non-visited ancestor
-            if (!(curr->flags & CDSMAP_FLAG_RIGHT) && (curr->right != NULL)) {
-                curr->flags |= CDSMAP_FLAG_RIGHT;
-                map->iterCurrent = cdsMapDigLeft(curr->right);
-            } else {
-                while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
-                    curr = curr->parent;
-                }
-                map->iterCurrent = curr;
-            }
-        } else {
-            // NB: We already visited the sub-tree right of `curr` and `curr`
-            // itself
-            //  => Visit the sub-tree left of `curr`, or if done already, the
-            //     first non-visited ancestor
-            if (!(curr->flags & CDSMAP_FLAG_LEFT) && (curr->left != NULL)) {
-                curr->flags |= CDSMAP_FLAG_LEFT;
-                map->iterCurrent = cdsMapDigRight(curr->left);
-            } else {
-                while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
-                    curr = curr->parent;
-                }
-                map->iterCurrent = curr;
-            }
-        }
+    if (NULL == map->iterNext) {
+        return NULL;
     }
-    if (map->iterCurrent != NULL) {
-        map->iterCurrent->flags |= CDSMAP_FLAG_SELF;
-        if (pKey != NULL) {
-            *pKey = map->iterCurrent->key;
-        }
+    cdsMapNext(map);
+    if (pKey != NULL) {
+        pKey = map->iterNext->key;
     }
-    return map->iterCurrent;
+    return map->iterNext;
 }
 
 
@@ -992,5 +967,46 @@ static void cdsMapInsertOne(CdsMap* map, CdsMapItem* item,
             }
         }
         item = subroot;
+    }
+}
+
+
+static void cdsMapNext(CdsMap* map)
+{
+    CdsMapItem* curr = map->iterNext;
+    if (NULL == curr) {
+        return;
+    }
+    if (map->iterAscending) {
+        // NB: We already visited the sub-tree left of `curr` and `curr`
+        // itself
+        //  => Visit the sub-tree right of `curr`, or if done already, the
+        //     first non-visited ancestor
+        if (!(curr->flags & CDSMAP_FLAG_RIGHT) && (curr->right != NULL)) {
+            curr->flags |= CDSMAP_FLAG_RIGHT;
+            map->iterNext = cdsMapDigLeft(curr->right);
+        } else {
+            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+                curr = curr->parent;
+            }
+            map->iterNext = curr;
+        }
+    } else {
+        // NB: We already visited the sub-tree right of `curr` and `curr`
+        // itself
+        //  => Visit the sub-tree left of `curr`, or if done already, the
+        //     first non-visited ancestor
+        if (!(curr->flags & CDSMAP_FLAG_LEFT) && (curr->left != NULL)) {
+            curr->flags |= CDSMAP_FLAG_LEFT;
+            map->iterNext = cdsMapDigRight(curr->left);
+        } else {
+            while ((curr != NULL) && (curr->flags & CDSMAP_FLAG_SELF)) {
+                curr = curr->parent;
+            }
+            map->iterNext = curr;
+        }
+    }
+    if (map->iterNext != NULL) {
+        map->iterNext->flags |= CDSMAP_FLAG_SELF;
     }
 }
