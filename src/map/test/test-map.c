@@ -2890,4 +2890,37 @@ RTT_GROUP_END(TestIterateEmptyMap,
         cds_free_map)
 
 
+RTT_GROUP_START(TestInsertSameItem, 0x00050004u, NULL, NULL)
+
+RTT_TEST_START(cds_should_create_map_4)
+{
+    gMap = CdsMapCreate("xyz", 9, testKeyCompare, NULL,
+            testKeyUnref, testItemUnref);
+    RTT_ASSERT(gMap != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_insert_same_key_1000_times)
+{
+    for (int i = 0; i < 1000; i++) {
+        TestItem* item = testItemAlloc(1);
+        char* key = testKeyCreate(1);
+        RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+    }
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_destroy_map_4)
+{
+    CdsMapDestroy(gMap);
+    gMap = NULL;
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestInsertSameItem,
+        cds_should_create_map_4,
+        cds_should_insert_same_key_1000_times,
+        cds_should_destroy_map_4)
+
+
 // TODO: top and deep removal with rotation
