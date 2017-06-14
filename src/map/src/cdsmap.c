@@ -370,6 +370,12 @@ bool CdsMapInsert(CdsMap* map, void* key, CdsMapItem* item)
             } else {
                 map->root = item;
             }
+            if (curr->left != NULL) {
+                curr->left->parent = item;
+            }
+            if (curr->right != NULL) {
+                curr->right->parent = item;
+            }
             if (map->keyUnref != NULL) {
                 map->keyUnref(curr->key);
             }

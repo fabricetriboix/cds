@@ -92,7 +92,286 @@ static int testKeyCompare(void* leftKey, void* rightKey, void* cookie)
 CdsMap* gMap = NULL;
 
 
-RTT_GROUP_START(TestCdsMap, 0x00050001u, NULL, NULL)
+RTT_GROUP_START(TestReplace, 0x00050001u, NULL, NULL)
+
+RTT_TEST_START(cds_replace_should_create_map)
+{
+    gMap = CdsMapCreate("xyz", 9, testKeyCompare, NULL,
+            testKeyUnref, testItemUnref);
+    RTT_ASSERT(gMap != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_insert_top_item)
+{
+    TestItem* item = testItemAlloc(100);
+    char* key = testKeyCreate(100);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_insert_left_item)
+{
+    TestItem* item = testItemAlloc(50);
+    char* key = testKeyCreate(50);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_insert_right_item)
+{
+    TestItem* item = testItemAlloc(150);
+    char* key = testKeyCreate(150);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_check_map_1)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.left == NULL);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(left->item.factor == 0);
+    RTT_ASSERT(left->value == 50);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 150);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_replace_root)
+{
+    TestItem* item = testItemAlloc(100);
+    char* key = testKeyCreate(100);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_check_map_2)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.left == NULL);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(left->item.factor == 0);
+    RTT_ASSERT(left->value == 50);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 150);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_replace_left_item)
+{
+    TestItem* item = testItemAlloc(50);
+    char* key = testKeyCreate(50);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_check_map_3)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.left == NULL);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(left->item.factor == 0);
+    RTT_ASSERT(left->value == 50);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 150);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_replace_right_item)
+{
+    TestItem* item = testItemAlloc(150);
+    char* key = testKeyCreate(150);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_check_map_4)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.left == NULL);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(left->item.factor == 0);
+    RTT_ASSERT(left->value == 50);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(right->item.left == NULL);
+    RTT_ASSERT(right->item.right == NULL);
+    key = (char*)(right->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 150);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_replace_should_destroy_map)
+{
+    CdsMapDestroy(gMap);
+    gMap = NULL;
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestReplace,
+        cds_replace_should_create_map,
+        cds_replace_should_insert_top_item,
+        cds_replace_should_insert_left_item,
+        cds_replace_should_insert_right_item,
+        cds_replace_should_check_map_1,
+        cds_replace_should_replace_root,
+        cds_replace_should_check_map_2,
+        cds_replace_should_replace_left_item,
+        cds_replace_should_check_map_3,
+        cds_replace_should_replace_right_item,
+        cds_replace_should_check_map_4,
+        cds_replace_should_destroy_map)
+
+
+RTT_GROUP_START(TestIterateEmptyMap, 0x00050002u, NULL, NULL)
+
+RTT_TEST_START(cds_should_create_empty_map)
+{
+    gMap = CdsMapCreate("MyMap", 9, testKeyCompare, NULL,
+            testKeyUnref, testItemUnref);
+    RTT_ASSERT(gMap != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_start_empty_iterator)
+{
+    CdsMapItem* item = CdsMapIteratorStart(gMap, true, NULL);
+    RTT_EXPECT(NULL == item);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_next_item_should_be_null)
+{
+    CdsMapItem* item = CdsMapIteratorNext(gMap, NULL);
+    RTT_EXPECT(NULL == item);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_free_map)
+{
+    CdsMapDestroy(gMap);
+    gMap = NULL;
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestIterateEmptyMap,
+        cds_should_create_empty_map,
+        cds_should_start_empty_iterator,
+        cds_next_item_should_be_null,
+        cds_free_map)
+
+
+RTT_GROUP_START(TestInsertSameItem, 0x00050003u, NULL, NULL)
+
+RTT_TEST_START(cds_should_create_map_4)
+{
+    gMap = CdsMapCreate("xyz", 9, testKeyCompare, NULL,
+            testKeyUnref, testItemUnref);
+    RTT_ASSERT(gMap != NULL);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_insert_same_key_1000_times)
+{
+    for (int i = 0; i < 1000; i++) {
+        TestItem* item = testItemAlloc(1);
+        char* key = testKeyCreate(1);
+        RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+    }
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_should_destroy_map_4)
+{
+    CdsMapDestroy(gMap);
+    gMap = NULL;
+}
+RTT_TEST_END
+
+RTT_GROUP_END(TestInsertSameItem,
+        cds_should_create_map_4,
+        cds_should_insert_same_key_1000_times,
+        cds_should_destroy_map_4)
+
+
+RTT_GROUP_START(TestCdsMap, 0x00050004u, NULL, NULL)
 
 RTT_TEST_START(cds_should_create_map)
 {
@@ -484,6 +763,73 @@ RTT_TEST_START(cds_map_find_replaced_item)
     TestItem* item = (TestItem*)CdsMapSearch(gMap, "00000150");
     RTT_ASSERT(item != NULL);
     RTT_ASSERT(item->value == 151);
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_replace_item_2)
+{
+    TestItem* item = testItemAlloc(200);
+    char* key = testKeyCreate(200);
+    RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
+}
+RTT_TEST_END
+
+RTT_TEST_START(cds_map_shape_should_be_unchanged_after_replacing_item)
+{
+    TestItem* root = *((TestItem**)gMap);
+    RTT_ASSERT(root != NULL);
+    RTT_ASSERT(root->item.parent == NULL);
+    char* key = (char*)(root->item.key);
+    RTT_ASSERT(strcmp(key, "00000100") == 0);
+    RTT_ASSERT(root->item.factor == 0);
+    RTT_ASSERT(root->value == 100);
+
+    TestItem* left = (TestItem*)(root->item.left);
+    RTT_ASSERT(left != NULL);
+    RTT_ASSERT(left->item.parent == (CdsMapItem*)root);
+    RTT_ASSERT(left->item.right == NULL);
+    key = (char*)(left->item.key);
+    RTT_ASSERT(strcmp(key, "00000050") == 0);
+    RTT_ASSERT(left->item.factor == -1);
+    RTT_ASSERT(left->value == 50);
+
+    TestItem* leftleft = (TestItem*)(left->item.left);
+    RTT_ASSERT(leftleft != NULL);
+    RTT_ASSERT(leftleft->item.parent == (CdsMapItem*)left);
+    RTT_ASSERT(leftleft->item.left == NULL);
+    RTT_ASSERT(leftleft->item.right == NULL);
+    key = (char*)(leftleft->item.key);
+    RTT_ASSERT(strcmp(key, "00000025") == 0);
+    RTT_ASSERT(leftleft->item.factor == 0);
+    RTT_ASSERT(leftleft->value == 25);
+
+    TestItem* right = (TestItem*)(root->item.right);
+    RTT_ASSERT(right != NULL);
+    RTT_ASSERT(right->item.parent == (CdsMapItem*)root);
+    key = (char*)(right->item.key);
+    RTT_ASSERT(strcmp(key, "00000200") == 0);
+    RTT_ASSERT(right->item.factor == 0);
+    RTT_ASSERT(right->value == 200);
+
+    TestItem* rightleft = (TestItem*)(right->item.left);
+    RTT_ASSERT(rightleft != NULL);
+    RTT_ASSERT(rightleft->item.parent == (CdsMapItem*)right);
+    RTT_ASSERT(rightleft->item.left == NULL);
+    RTT_ASSERT(rightleft->item.right == NULL);
+    key = (char*)(rightleft->item.key);
+    RTT_ASSERT(strcmp(key, "00000150") == 0);
+    RTT_ASSERT(rightleft->item.factor == 0);
+    RTT_ASSERT(rightleft->value == 151);
+
+    TestItem* rightright = (TestItem*)(right->item.right);
+    RTT_ASSERT(rightright != NULL);
+    RTT_ASSERT(rightright->item.parent == (CdsMapItem*)right);
+    RTT_ASSERT(rightright->item.left == NULL);
+    RTT_ASSERT(rightright->item.right == NULL);
+    key = (char*)(rightright->item.key);
+    RTT_ASSERT(strcmp(key, "00000300") == 0);
+    RTT_ASSERT(rightright->item.factor == 0);
+    RTT_ASSERT(rightright->value == 300);
 }
 RTT_TEST_END
 
@@ -1109,6 +1455,8 @@ RTT_GROUP_END(TestCdsMap,
         cds_map_replace_item,
         cds_map_size_should_not_change_after_replacing_item,
         cds_map_find_replaced_item,
+        cds_map_replace_item_2,
+        cds_map_shape_should_be_unchanged_after_replacing_item,
         cds_map_insert_3_items_and_perform_double_RL_rotation,
         cds_map_size_should_be_9_after_inserting_3_items,
         cds_map_should_not_be_empty_after_inserting_3_items,
@@ -1136,7 +1484,7 @@ RTT_GROUP_END(TestCdsMap,
 
 
 // Test insertions and deletions with more than one level of retracing
-RTT_GROUP_START(TestCdsDeepMap, 0x00050002u, NULL, NULL)
+RTT_GROUP_START(TestCdsDeepMap, 0x00050005u, NULL, NULL)
 
 RTT_TEST_START(cds_should_create_deep_map)
 {
@@ -2850,77 +3198,6 @@ RTT_GROUP_END(TestCdsDeepMap,
         cds_should_perform_RR_rotation_when_removing_top_item,
         cds_check_deep_map_after_top_removal_with_RR_rotation,
         cds_should_destroy_deep_map);
-
-
-RTT_GROUP_START(TestIterateEmptyMap, 0x00050003u, NULL, NULL)
-
-RTT_TEST_START(cds_should_create_empty_map)
-{
-    gMap = CdsMapCreate("MyMap", 9, testKeyCompare, NULL,
-            testKeyUnref, testItemUnref);
-    RTT_ASSERT(gMap != NULL);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_start_empty_iterator)
-{
-    CdsMapItem* item = CdsMapIteratorStart(gMap, true, NULL);
-    RTT_EXPECT(NULL == item);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_next_item_should_be_null)
-{
-    CdsMapItem* item = CdsMapIteratorNext(gMap, NULL);
-    RTT_EXPECT(NULL == item);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_free_map)
-{
-    CdsMapDestroy(gMap);
-    gMap = NULL;
-}
-RTT_TEST_END
-
-RTT_GROUP_END(TestIterateEmptyMap,
-        cds_should_create_empty_map,
-        cds_should_start_empty_iterator,
-        cds_next_item_should_be_null,
-        cds_free_map)
-
-
-RTT_GROUP_START(TestInsertSameItem, 0x00050004u, NULL, NULL)
-
-RTT_TEST_START(cds_should_create_map_4)
-{
-    gMap = CdsMapCreate("xyz", 9, testKeyCompare, NULL,
-            testKeyUnref, testItemUnref);
-    RTT_ASSERT(gMap != NULL);
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_insert_same_key_1000_times)
-{
-    for (int i = 0; i < 1000; i++) {
-        TestItem* item = testItemAlloc(1);
-        char* key = testKeyCreate(1);
-        RTT_ASSERT(CdsMapInsert(gMap, key, (CdsMapItem*)item));
-    }
-}
-RTT_TEST_END
-
-RTT_TEST_START(cds_should_destroy_map_4)
-{
-    CdsMapDestroy(gMap);
-    gMap = NULL;
-}
-RTT_TEST_END
-
-RTT_GROUP_END(TestInsertSameItem,
-        cds_should_create_map_4,
-        cds_should_insert_same_key_1000_times,
-        cds_should_destroy_map_4)
 
 
 // TODO: top and deep removal with rotation
