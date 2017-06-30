@@ -291,6 +291,15 @@ CdsListItem* CdsListPopFront(CdsList* list);
 CdsListItem* CdsListPopBack(CdsList* list);
 
 
+/** Remove all items from the list
+ *
+ * All items in the list will be unreferenced.
+ *
+ * @param list [in,out] The list to clear of all its items
+ */
+void CdsListClear(CdsList* list);
+
+
 
 #endif /* CDSLIST_h_ */
 /* @} */
