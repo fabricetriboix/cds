@@ -331,6 +331,14 @@ RTT_TEST_START(cds_small_list_should_be_as_expected_after_removing_items)
 }
 RTT_TEST_END
 
+RTT_TEST_START(cds_small_list_should_clear_list)
+{
+    CdsListClear(gList);
+    RTT_EXPECT(CdsListIsEmpty(gList));
+    RTT_EXPECT(0 == gNumberOfItemsInExistence);
+}
+RTT_TEST_END
+
 RTT_TEST_START(cds_should_destroy_small_list)
 {
     CdsListDestroy(gList);
@@ -372,4 +380,5 @@ RTT_GROUP_END(TestCdsListSmall,
         cds_small_list_should_remove_items,
         cds_small_list_size_should_be_12_after_removing_items,
         cds_small_list_should_be_as_expected_after_removing_items,
+        cds_small_list_should_clear_list,
         cds_should_destroy_small_list)

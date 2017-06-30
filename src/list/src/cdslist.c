@@ -64,14 +64,7 @@ CdsList* CdsListCreate(const char* name, int64_t capacity,
 void CdsListDestroy(CdsList* list)
 {
     CDSASSERT(list != NULL);
-
-    while (!CdsListIsEmpty(list)) {
-        CdsListItem* tmp = CdsListPopFront(list);
-        CDSASSERT(tmp != NULL);
-        if (list->unref != NULL) {
-            list->unref(tmp);
-        }
-    }
+    CdsListClear(list);
     free(list->name);
     free(list);
 }
@@ -251,4 +244,18 @@ CdsListItem* CdsListPopBack(CdsList* list)
         CdsListRemove(back);
     }
     return back;
+}
+
+
+void CdsListClear(CdsList* list)
+{
+    CDSASSERT(list != NULL);
+
+    while (!CdsListIsEmpty(list)) {
+        CdsListItem* tmp = CdsListPopFront(list);
+        CDSASSERT(tmp != NULL);
+        if (list->unref != NULL) {
+            list->unref(tmp);
+        }
+    }
 }

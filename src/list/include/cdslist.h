@@ -225,7 +225,8 @@ bool CdsListInsertBefore(CdsListItem* pos, CdsListItem* item);
 /** Get the item at the front of the list
  *
  * Please note the item is not removed from the list, use `CdsListPopFront()`
- * for that effect.
+ * for that effect. The ownership of the item stays with the list, do not
+ * unreference the item.
  *
  * @param list [in] The list to query
  *
@@ -237,7 +238,8 @@ CdsListItem* CdsListFront(const CdsList* list);
 /** Get the item at the back of the list
  *
  * Please note the item is not removed from the list, use `CdsListPopBack()`
- * for that effect.
+ * for that effect. The ownership of the item stays with the list, do not
+ * unreference the item.
  *
  * @param list [in] The list to query
  *
@@ -289,6 +291,15 @@ CdsListItem* CdsListPopFront(CdsList* list);
  * @return The popped item, or NULL if list is empty
  */
 CdsListItem* CdsListPopBack(CdsList* list);
+
+
+/** Remove all items from the list
+ *
+ * All items in the list will be unreferenced.
+ *
+ * @param list [in,out] The list to clear of all its items
+ */
+void CdsListClear(CdsList* list);
 
 
 
